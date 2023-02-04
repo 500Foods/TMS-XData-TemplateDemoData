@@ -3,7 +3,9 @@ program Project1;
 uses
   Vcl.Forms,
   Unit1 in 'Unit1.pas' {ServerContainer: TDataModule},
-  Unit2 in 'Unit2.pas' {MainForm};
+  Unit2 in 'Unit2.pas' {MainForm},
+  SystemService in 'SystemService.pas',
+  SystemServiceImplementation in 'SystemServiceImplementation.pas';
 
 {$R *.res}
 
