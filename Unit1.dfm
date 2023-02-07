@@ -1,5 +1,6 @@
 object ServerContainer: TServerContainer
   OldCreateOrder = False
+  OnCreate = DataModuleCreate
   Height = 210
   Width = 431
   object SparkleHttpSysDispatcher: TSparkleHttpSysDispatcher
@@ -12,8 +13,23 @@ object ServerContainer: TServerContainer
     Dispatcher = SparkleHttpSysDispatcher
     Pool = XDataConnectionPool
     EntitySetPermissions = <>
+    SwaggerOptions.Enabled = True
+    SwaggerOptions.AuthMode = Jwt
+    SwaggerUIOptions.Enabled = True
+    SwaggerUIOptions.ShowFilter = True
+    SwaggerUIOptions.TryItOutEnabled = True
     Left = 216
     Top = 16
+    object XDataServerJWT: TSparkleJwtMiddleware
+      Secret = 
+        'ThisIsAReallyLongSecretThatReallyDoesNeedToBeLongAsItIsUsedAsACr' +
+        'iticalPartOfOurXDataSecurityModel'
+    end
+    object XDataServerCompress: TSparkleCompressMiddleware
+    end
+    object XDataServerCORS: TSparkleCorsMiddleware
+      Origin = '*'
+    end
   end
   object XDataConnectionPool: TXDataConnectionPool
     Connection = AureliusConnection

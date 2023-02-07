@@ -35,7 +35,7 @@ begin
   // Returning JSON, so flag it as such
   TXDataOperationContext.Current.Response.Headers.SetValue('content-type', 'application/json');
 
-  MainForm.mmInfo.lines.Add(TZ);
+  // Figure out if we have a valid TZ
   try
     ClientTimeZone := TBundledTimeZone.GetTimeZone(TZ);
     ValidTimeZone := True;

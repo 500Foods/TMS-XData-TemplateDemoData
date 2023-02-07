@@ -5,13 +5,14 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
   System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs,
-  Vcl.StdCtrls, Unit1, System.IOUtils, System.DateUtils, IdStack, psAPI;
+  Vcl.StdCtrls, Unit1, System.IOUtils, System.DateUtils, IdStack, psAPI, WinAPi.ShellAPI;
 
 type
   TMainForm = class(TForm)
     mmInfo: TMemo;
     btStart: TButton;
     btStop: TButton;
+    btSwagger: TButton;
     procedure btStartClick(ASender: TObject);
     procedure btStopClick(ASender: TObject);
     procedure FormCreate(ASender: TObject);
@@ -26,6 +27,7 @@ type
     function GetAppTimeZoneOffset: Integer;
     procedure GetIPAddresses(List: TStringList);
     function GetMemoryUsage: NativeUInt;
+    procedure btSwaggerClick(Sender: TObject);
   public
     AppName: String;
     AppVersion: String;
@@ -66,16 +68,23 @@ begin
   UpdateGUI;
 end;
 
+procedure TMainForm.btSwaggerClick(Sender: TObject);
+var
+  url: String;
+const
+  cHttp = 'http://+';
+  cHttpLocalhost = 'http://localhost';
+begin
+  url := StringReplace(
+      ServerContainer.XDataServer.BaseUrl,
+      cHttp, cHttpLocalhost, [rfIgnoreCase])+'/swaggerui';
+  ShellExecute(0, 'open', PChar(url), nil, nil, SW_SHOWNORMAL);
+end;
+
 procedure TMainForm.FormCreate(ASender: TObject);
 begin
-  AppParameters := TStringList.Create;
-  AppParameters.QuoteChar := ' ';
-  GetAppParameters(AppParameters);
 
-  IPAddresses := TStringList.Create;
-  IPAddresses.QuoteChar := ' ';
-  GetIPAddresses(IPAddresses);
-
+  // Get System Values
   AppName := GetAppName;
   AppVersion := GetAppVersion;
   AppRelease := GetAppRelease;
@@ -85,20 +94,31 @@ begin
   AppTimeZone := GetAppTimeZone;
   AppTimeZoneOffset := GetAppTimeZoneOffset;
 
+  // This is a list
+  AppParameters := TStringList.Create;
+  AppParameters.QuoteChar := ' ';
+  GetAppParameters(AppParameters);
+
+  // This is also a list
+  IPAddresses := TStringList.Create;
+  IPAddresses.QuoteChar := ' ';
+  GetIPAddresses(IPAddresses);
+
   UpdateGUI;
 
+  // Display System Values
   mmInfo.Lines.Add('');
   mmInfo.Lines.Add('App Name: '+AppName);
   mmInfo.Lines.Add('App Version: '+AppVersion);
   mmInfo.Lines.Add('App Release: '+FormatDateTime('yyyy-mmm-dd (ddd) hh:nn:ss', AppRelease));
-  mmInfo.Lines.Add('App Release UTC: '+FormatDateTime('yyyy-mm-dd hh:nn:ss.zzz', AppReleaseUTC)+' UTC');
-  mmInfo.Lines.Add('App Parameters: '+AppParameters.DelimitedText);
+  mmInfo.Lines.Add('App Release UTC: '+FormatDateTime('yyyy-mm-dd hh:nn:ss.zzz', AppReleaseUTC));
   mmInfo.Lines.Add('App File Name: '+AppFileName);
   mmInfo.Lines.Add('App File Size: '+Format('%.1n',[AppFileSize / 1024 / 1024])+' MB');
   mmInfo.Lines.Add('App TimeZone: '+AppTimeZone);
   mmInfo.Lines.Add('App TimeZone Offset: '+IntToStr(AppTimeZoneOffset)+'m');
+  mmInfo.Lines.Add('App Parameters: '+AppParameters.DelimitedText);
+  mmInfo.Lines.Add('Server IP Addresses: '+IPAddresses.DelimitedText);
   mmInfo.Lines.Add('App Memory Usage: '+Format('%.1n',[GetMemoryUsage / 1024 / 1024])+' MB');
-  mmInfo.Lines.Add('Server IP Address: '+IPAddresses.DelimitedText);
 end;
 
 function TMainForm.GetAppFileName: String;
@@ -159,6 +179,7 @@ begin
   Result := ZoneInfo.Bias;
 end;
 
+// https://stackoverflow.com/questions/1717844/how-to-determine-delphi-application-version
 function TMainForm.GetAppVersion: String;
 const
   c_StringInfo = 'StringFileInfo\040904E4\FileVersion';
@@ -211,7 +232,7 @@ begin
   MemCounters.cb := SizeOf(MemCounters);
   if GetProcessMemoryInfo(GetCurrentProcess, @MemCounters, SizeOf(MemCounters))
   then Result := MemCounters.WorkingSetSize
-  else RaiseLastOSError;
+  else mmInfo.Lines.add('ERROR: WorkingSetSize not available');
 end;
 
 
