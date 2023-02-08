@@ -150,7 +150,12 @@
         </DCCReference>
         <DCCReference Include="SystemService.pas"/>
         <DCCReference Include="SystemServiceImplementation.pas"/>
-        <DCCReference Include="TZDB.pas"/>
+        <DCCReference Include="TZDB.pas">
+            <Form>$R *.res</Form>
+        </DCCReference>
+        <None Include="ddl\person_role_sqlite.inc"/>
+        <None Include="ddl\person_sqlite.inc"/>
+        <None Include="ddl\role_sqlite.inc"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
@@ -182,9 +187,27 @@
                 </Excluded_Packages>
             </Delphi.Personality>
             <Deployment Version="3">
+                <DeployFile LocalName="ddl\person_role_sqlite.inc" Configuration="Release" Class="ProjectFile">
+                    <Platform Name="Win64">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="ddl\role_sqlite.inc" Configuration="Release" Class="ProjectFile">
+                    <Platform Name="Win64">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="Win32\Debug\Project1.exe" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win32">
                         <RemoteName>Project1.exe</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="ddl\person_sqlite.inc" Configuration="Release" Class="ProjectFile">
+                    <Platform Name="Win64">
+                        <RemoteDir>.\</RemoteDir>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>

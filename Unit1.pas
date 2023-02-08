@@ -59,7 +59,6 @@ begin
   // FDQuery component dropped on form
   // DatabaseName is a Form Variable
 
-
   // Use a different database if one is passed as a parameter
   DatabaseName := 'DemoData.sqlite';
   i := 1;
@@ -71,7 +70,6 @@ begin
     end;
     i := i + 1;
   end;
-
 
   // This creates the database if it doesn't already exist
   FDManager.Open;
@@ -85,6 +83,12 @@ begin
   FDConnection1.Params.Add('BusyTimeout=10000');
   FDConnection1.Params.Add('SQLiteAdvanced=page_size=4096');
   FDConnection1.Open;
+  FDQuery1.Connection := FDConnection1;
+
+  {$Include ddl\person_sqlite.inc}
+  {$Include ddl\role_sqlite.inc}
+  {$Include ddl\person_role_sqlite.inc}
+
 
 
 end;
