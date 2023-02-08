@@ -83,9 +83,12 @@ begin
 
   // Not sure if there is another version of this that is more direct?
   Result := TStringStream.Create(ResultJSON.ToString);
+
+  // Cleanup
+  TXDataOperationContext.Current.Handler.ManagedObjects.Add(Result);
   ResultJSON.Free;
 
-// These are now part of ResultJSOn and get freed when that gets freed
+// These are now part of ResultJSON and get freed when that gets freed
 // ServerIPArray.Free;
 // ParametersArray.Free;
 

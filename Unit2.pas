@@ -119,6 +119,7 @@ begin
   mmInfo.Lines.Add('App Parameters: '+AppParameters.DelimitedText);
   mmInfo.Lines.Add('Server IP Addresses: '+IPAddresses.DelimitedText);
   mmInfo.Lines.Add('App Memory Usage: '+Format('%.1n',[GetMemoryUsage / 1024 / 1024])+' MB');
+  mmInfo.Lines.Add('Database: '+ServerContainer.DatabaseName);
 end;
 
 function TMainForm.GetAppFileName: String;
