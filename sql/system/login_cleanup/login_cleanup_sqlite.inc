@@ -1,5 +1,9 @@
-  // login_cleanup
-  with FDQuery1 do
+// [query] login_cleanup
+
+if (ServerContainer.DatabaseEngine = 'sqlite') then
+begin
+
+  with Query1 do
   begin
 
     SQL.Clear;
@@ -43,3 +47,4 @@
             '  valid_until < Datetime("now", "-24 hours", "localtime");'
            );
   end;
+end;

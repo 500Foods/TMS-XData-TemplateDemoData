@@ -114,8 +114,8 @@ end;
 
 function TSystemService.Login(Login_ID, Password, API_Key, TZ: String): String;
 var
-  FDConn: TFDConnection;
-  FDQuery1: TFDQuery;
+  DBConn: TFDConnection;
+  Query1: TFDQuery;
   ClientTimeZone: TBundledTimeZone;
   ValidTimeZone: Boolean;
   ElapsedTime: TDateTime;
@@ -168,87 +168,87 @@ begin
   if not(ValidTimeZone) then raise EXDataHttpUnauthorized.Create('Invalid TZ');
 
   // Setup DB connection and query
-  DBSupport.ConnectQuery(FDConn, FDQuery1);
+  DBSupport.ConnectQuery(DBConn, Query1);
 
   // Check if we've got a valid API_Key
   {$Include sql\system\api_key_check\api_key_check.inc}
-  FDQuery1.ParamByName('APIKEY').AsString := LowerCase(API_Key);
-  FDQuery1.Open;
-  if FDQuery1.RecordCount = 0 then raise EXDataHttpUnauthorized.Create('API_Key was not validated');
+  Query1.ParamByName('APIKEY').AsString := LowerCase(API_Key);
+  Query1.Open;
+  if Query1.RecordCount = 0 then raise EXDataHttpUnauthorized.Create('API_Key was not validated');
 
   // Check if the IP Address is always allowed
   {$Include sql\system\ip_allow_check\ip_allow_check.inc}
-  FDQuery1.ParamByName('IPADDRESS').AsString := TXDataOperationContext.Current.Request.RemoteIP;
-  FDQuery1.Open;
-  if FDQuery1.RecordCount = 0 then
+  Query1.ParamByName('IPADDRESS').AsString := TXDataOperationContext.Current.Request.RemoteIP;
+  Query1.Open;
+  if Query1.RecordCount = 0 then
   begin
     {$Include sql\system\ip_block_check\ip_block_check.inc}
-    FDQuery1.ParamByName('IPADDRESS').AsString := TXDataOperationContext.Current.Request.RemoteIP;
-    FDQuery1.Open;
-    if FDQuery1.RecordCount > 0 then raise EXDataHttpUnauthorized.Create('IP Address has been temporarily blocked')
+    Query1.ParamByName('IPADDRESS').AsString := TXDataOperationContext.Current.Request.RemoteIP;
+    Query1.Open;
+    if Query1.RecordCount > 0 then raise EXDataHttpUnauthorized.Create('IP Address has been temporarily blocked')
   end;
 
   // IP Check passed.  Next up: Login attempts.  First we log the attempt.  Then we count them.
   {$Include sql\system\login_fail_insert\login_fail_insert.inc}
-  FDQuery1.ParamByName('LOGINID').AsString := LowerCase(Login_ID);
-  FDQuery1.ParamByName('IPADDRESS').AsString := TXDataOperationContext.Current.Request.RemoteIP;
-  FDQuery1.Execute;
+  Query1.ParamByName('LOGINID').AsString := LowerCase(Login_ID);
+  Query1.ParamByName('IPADDRESS').AsString := TXDataOperationContext.Current.Request.RemoteIP;
+  Query1.Execute;
   {$Include sql\system\login_fail_check\login_fail_check.inc}
-  FDQuery1.ParamByName('LOGINID').AsString := LowerCase(Login_ID);
-  FDQuery1.ParamByName('IPADDRESS').AsString := TXDataOperationContext.Current.Request.RemoteIP;
-  FDQuery1.Open;
-  if FDQuery1.FieldByNAme('attempts').AsInteger >= 5 then
+  Query1.ParamByName('LOGINID').AsString := LowerCase(Login_ID);
+  Query1.ParamByName('IPADDRESS').AsString := TXDataOperationContext.Current.Request.RemoteIP;
+  Query1.Open;
+  if Query1.FieldByNAme('attempts').AsInteger >= 5 then
   begin
     {$Include sql\system\ip_block_insert\ip_block_insert.inc}
-    FDQuery1.ParamByName('IPADDRESS').AsString := TXDataOperationContext.Current.Request.RemoteIP;
-    FDQuery1.ParamByName('REASON').AsString := 'Too many failed login attempts.';
-    FDQuery1.ExecSQL;
+    Query1.ParamByName('IPADDRESS').AsString := TXDataOperationContext.Current.Request.RemoteIP;
+    Query1.ParamByName('REASON').AsString := 'Too many failed login attempts.';
+    Query1.ExecSQL;
     raise EXDataHttpUnauthorized.Create('Too many failed login attempts.  Please try again later.')
   end;
 
   // Alright, the login has passed all its initial checks.  Lets see if the Login_ID is known
   {$Include sql\system\contact_search\contact_search.inc}
-  FDQuery1.ParamByName('LOGINID').AsString := LowerCase(Login_ID);
-  FDQuery1.Open;
-  if FDQuery1.RecordCount = 0
+  Query1.ParamByName('LOGINID').AsString := LowerCase(Login_ID);
+  Query1.Open;
+  if Query1.RecordCount = 0
   then raise EXDataHttpUnauthorized.Create('Login not authenticated: invalid login')
-  else if FDQuery1.RecordCount > 1
+  else if Query1.RecordCount > 1
        then EXDataHttpUnauthorized.Create('Login not authenticated: ambiguous login');
 
   // Got the Person ID
-  PersonID := FDQuery1.FieldByName('person_id').AsInteger;
+  PersonID := Query1.FieldByName('person_id').AsInteger;
 
   // Ok, we've got a person, let's see if they've got the required Login role
   {$Include sql\system\person_role_check\person_role_check.inc}
-  FDQuery1.ParamByName('PERSONID').AsInteger := PersonID;
-  FDQuery1.Open;
-  if FDQuery1.FieldByName('role_id').AsInteger <> 0 then raise EXDataHttpUnauthorized.Create('Login not authorized');
+  Query1.ParamByName('PERSONID').AsInteger := PersonID;
+  Query1.Open;
+  if Query1.FieldByName('role_id').AsInteger <> 0 then raise EXDataHttpUnauthorized.Create('Login not authorized');
 
   // Login role is present, so let's make a note of the other roles
   Roles := '';
-  while not(FDQuery1.EOF) do
+  while not(Query1.EOF) do
   begin
-    Roles := Roles + FDQuery1.FieldByName('role_id').AsString;
-    FDquery1.Next;
-    if not(FDQuery1.EOF) then Roles := Roles + ',';
+    Roles := Roles + Query1.FieldByName('role_id').AsString;
+    Query1.Next;
+    if not(Query1.EOF) then Roles := Roles + ',';
   end;
 
   // Get the first available EMail address if possible
   EMailAddress := 'unavailable';
   {$Include sql\system\contact_email\contact_email.inc}
-  FDQuery1.ParamByName('PERSONID').AsInteger := PersonID;
-  FDQuery1.Open;
-  if FDQuery1.RecordCount > 0
-  then EMailAddress := FDQuery1.FieldByName('value').AsString;
+  Query1.ParamByName('PERSONID').AsInteger := PersonID;
+  Query1.Open;
+  if Query1.RecordCount > 0
+  then EMailAddress := Query1.FieldByName('value').AsString;
 
 
   // Finally, let's check the actual passowrd.
   PasswordHash := DBSupport.HashThis('XData-Password:'+Trim(Password));
   {$Include sql\system\person_password_check\person_password_check.inc}
-  FDQuery1.ParamByName('PERSONID').AsInteger := PersonID;
-  FDQuery1.ParamByName('PASSWORDHASH').AsString := PasswordHash;
-  FDQuery1.Open;
-  if FDQuery1.RecordCount <> 1 then raise EXDataHttpUnauthorized.Create('Login not authenticated: invalid password');
+  Query1.ParamByName('PERSONID').AsInteger := PersonID;
+  Query1.ParamByName('PASSWORDHASH').AsString := PasswordHash;
+  Query1.Open;
+  if Query1.RecordCount <> 1 then raise EXDataHttpUnauthorized.Create('Login not authenticated: invalid password');
 
   // Login has been authenticated and authorized.
 
@@ -262,10 +262,10 @@ begin
     JWT.Claims.SetClaimOfType<integer>('usr', PersonID );
     JWT.Claims.SetClaimOfType<string>( 'rol', Roles );
     JWT.Claims.SetClaimOfType<string>( 'eml', EMailAddress );
-    JWT.Claims.SetClaimOfType<string>( 'fnm', FDQuery1.FieldByName('first_name').AsString );
-    JWT.Claims.SetClaimOfType<string>( 'mnm', FDQuery1.FieldByName('middle_name').AsString );
-    JWT.Claims.SetClaimOfType<string>( 'lnm', FDQuery1.FieldByName('last_name').AsString );
-    JWT.Claims.SetClaimOfType<string>( 'anm', FDQuery1.FieldByName('account_name').AsString );
+    JWT.Claims.SetClaimOfType<string>( 'fnm', Query1.FieldByName('first_name').AsString );
+    JWT.Claims.SetClaimOfType<string>( 'mnm', Query1.FieldByName('middle_name').AsString );
+    JWT.Claims.SetClaimOfType<string>( 'lnm', Query1.FieldByName('last_name').AsString );
+    JWT.Claims.SetClaimOfType<string>( 'anm', Query1.FieldByName('account_name').AsString );
     JWT.Claims.SetClaimOfType<string>( 'net', TXDataOperationContext.Current.Request.RemoteIP );
     JWT.Claims.SetClaimOfType<string>( 'iat', FormatDateTime('yyyy-mm-dd hh:nn:ss.zzz', IssuedAt));
     JWT.Claims.SetClaimOfType<string>( 'eat', FormatDateTime('yyyy-mm-dd hh:nn:ss.zzz', ExpiresAt));
@@ -280,36 +280,36 @@ begin
 
   // Add the JWT to a table that we'll use to help with expring tokens
   {$Include sql\system\token_insert\token_insert.inc}
-  FDQuery1.ParamByName('TOKENHASH').AsString := DBSupport.HashThis(Result);
-  FDQuery1.ParamByName('VALIDAFTER').AsDateTime := IssuedAt;
-  FDQuery1.ParamByName('VALIDUNTIL').AsDateTime := ExpiresAt;
-  FDQuery1.ParamByName('PERSONID').AsInteger := PersonID;
-  FDQuery1.ExecSQL;
+  Query1.ParamByName('TOKENHASH').AsString := DBSupport.HashThis(Result);
+  Query1.ParamByName('VALIDAFTER').AsDateTime := IssuedAt;
+  Query1.ParamByName('VALIDUNTIL').AsDateTime := ExpiresAt;
+  Query1.ParamByName('PERSONID').AsInteger := PersonID;
+  Query1.ExecSQL;
 
   // Keep track of login history
   {$Include sql\system\login_history_insert\login_history_insert.inc}
-  FDQuery1.ParamByName('LOGGEDIN').AsDateTime := IssuedAt;
-  FDQuery1.ParamByName('IPADDRESS').AsString := TXDataOperationContext.Current.Request.RemoteIP;
-  FDQuery1.ParamByName('PERSONID').AsInteger := PersonID;
-  FDQuery1.ExecSQL;
+  Query1.ParamByName('LOGGEDIN').AsDateTime := IssuedAt;
+  Query1.ParamByName('IPADDRESS').AsString := TXDataOperationContext.Current.Request.RemoteIP;
+  Query1.ParamByName('PERSONID').AsInteger := PersonID;
+  Query1.ExecSQL;
 
   // Cleanup after login
   {$Include sql\system\login_cleanup\login_cleanup.inc}
-  FDQuery1.ParamByName('IPADDRESS').AsString := TXDataOperationContext.Current.Request.RemoteIP;
-  FDQuery1.ParamByName('LOGINID').AsString := LowerCase(Login_ID);
-  FDQuery1.ExecSQL;
+  Query1.ParamByName('IPADDRESS').AsString := TXDataOperationContext.Current.Request.RemoteIP;
+  Query1.ParamByName('LOGINID').AsString := LowerCase(Login_ID);
+  Query1.ExecSQL;
 
   // Keep track of endpoint history
   {$Include sql\system\endpoint_history_insert\endpoint_history_insert.inc}
-  FDQuery1.ParamByName('ENDPOINT').AsString := 'SystemService.Login';
-  FDQuery1.ParamByName('ACCESSED').AsDateTime := ElapsedTime;
-  FDQuery1.ParamByName('IPADDRESS').AsString := TXDataOperationContext.Current.Request.RemoteIP;
-  FDQuery1.ParamByName('EXECUTIONMS').AsInteger := MillisecondsBetween(Now,ElapsedTime);
-  FDQuery1.ParamByName('DETAILS').AsString := '['+Login_ID+'] [Passowrd] [API_Key] ['+TZ+']';
-  FDQuery1.ExecSQL;
+  Query1.ParamByName('ENDPOINT').AsString := 'SystemService.Login';
+  Query1.ParamByName('ACCESSED').AsDateTime := ElapsedTime;
+  Query1.ParamByName('IPADDRESS').AsString := TXDataOperationContext.Current.Request.RemoteIP;
+  Query1.ParamByName('EXECUTIONMS').AsInteger := MillisecondsBetween(Now,ElapsedTime);
+  Query1.ParamByName('DETAILS').AsString := '['+Login_ID+'] [Passowrd] [API_Key] ['+TZ+']';
+  Query1.ExecSQL;
 
   // All Done
-  DBSupport.CleanupQuery(FDConn, FDQuery1);
+  DBSupport.CleanupQuery(DBConn, Query1);
 
 end;
 

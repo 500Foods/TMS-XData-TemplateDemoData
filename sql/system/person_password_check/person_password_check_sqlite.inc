@@ -1,5 +1,9 @@
-  // person_password_check
-  with FDQuery1 do
+// [query] person_password_check
+
+if (ServerContainer.DatabaseEngine = 'sqlite') then
+begin
+
+  with Query1 do
   begin
 
     SQL.Clear;
@@ -16,3 +20,4 @@
            );
 
   end;
+end;

@@ -1,5 +1,9 @@
-  // login_fail_check
-  with FDQuery1 do
+// [query] login_fail_check
+
+if (ServerContainer.DatabaseEngine = 'sqlite') then
+begin
+
+  with Query1 do
   begin
 
     SQL.Clear;
@@ -14,3 +18,5 @@
            );
 
   end;
+end;
+

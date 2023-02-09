@@ -1,5 +1,9 @@
-  // token_insert
-  with FDQuery1 do
+// [query] token_insert
+
+if (ServerContainer.DatabaseEngine = 'sqlite') then
+begin
+
+  with Query1 do
   begin
 
     SQL.Clear;
@@ -15,3 +19,4 @@
            );
 
   end;
+end;

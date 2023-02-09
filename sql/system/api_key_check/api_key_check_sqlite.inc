@@ -1,5 +1,9 @@
-  // API Key Check
-  with FDQuery1 do
+// [query] api_key_check
+
+if (ServerContainer.DatabaseEngine = 'sqlite') then
+begin
+
+  with Query1 do
   begin
 
     SQL.Clear;
@@ -14,3 +18,4 @@
            );
 
   end;
+end;

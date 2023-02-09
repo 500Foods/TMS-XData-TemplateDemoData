@@ -1,5 +1,9 @@
-  // contact_email
-  with FDQuery1 do
+// [query] contact_email
+
+if (ServerContainer.DatabaseEngine = 'sqlite') then
+begin
+
+  with Query1 do
   begin
 
     SQL.Clear;
@@ -15,3 +19,4 @@
            );
 
   end;
+end;

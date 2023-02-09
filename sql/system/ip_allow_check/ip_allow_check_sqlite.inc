@@ -1,5 +1,9 @@
-  // ip_allow_check
-  with FDQuery1 do
+// [query] ip_allow_check
+
+if (ServerContainer.DatabaseEngine = 'sqlite') then
+begin
+
+  with Query1 do
   begin
 
     SQL.Clear;
@@ -14,3 +18,4 @@
            );
 
   end;
+end;

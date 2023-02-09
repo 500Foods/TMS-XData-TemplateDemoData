@@ -1,5 +1,9 @@
-  // login_history_insert
-  with FDQuery1 do
+// [query] login_history_insert
+
+if (ServerContainer.DatabaseEngine = 'sqlite') then
+begin
+
+  with Query1 do
   begin
 
     SQL.Clear;
@@ -14,3 +18,4 @@
            );
 
   end;
+end;
