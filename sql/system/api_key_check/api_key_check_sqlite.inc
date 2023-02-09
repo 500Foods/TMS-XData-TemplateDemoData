@@ -1,8 +1,4 @@
-// [query] API Key Check
-
-if (DatabaseEngine = 'sqlite' then
-begin
-
+  // API Key Check
   with FDQuery1 do
   begin
 
@@ -18,4 +14,3 @@ begin
            );
 
   end;
-end;
