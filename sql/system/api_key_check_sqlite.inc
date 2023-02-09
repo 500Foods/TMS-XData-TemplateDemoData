@@ -8,7 +8,7 @@
             'from '+
             '  api_key '+
             'where '+
-            '  api_key = :APIKEY '+
+            '  lower(api_key) = :APIKEY '+
             '  and (valid_after < current_timestamp) '+
             '  and (valid_until > current_timestamp);'
            );

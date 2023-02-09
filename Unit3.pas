@@ -10,6 +10,9 @@ uses
   XData.Service.Common,
   XData.Sys.Exceptions,
 
+  HashObj,
+  MiscObj,
+
   FireDAC.Stan.Intf,
   FireDAC.Stan.Option,
   FireDAC.Stan.Param,
@@ -26,6 +29,7 @@ type
     { Public declarations }
     procedure ConnectQuery(var conn: TFDConnection; var qry: TFDQuery);
     procedure CleanupQuery(var conn: TFDConnection; var qry: TFDQuery);
+    function HashThis(InputText: String):String;
   end;
 
 var
@@ -38,6 +42,18 @@ implementation
 {$R *.dfm}
 
 uses Unit1, Unit2;
+
+function TDBSupport.HashThis(InputText: String):String;
+var
+  SHA2: TSHA2Hash;
+begin
+  SHA2 := TSHA2Hash.Create;
+  SHA2.HashSizeBits:= 256;
+  SHA2.OutputFormat:= hexa;
+  SHA2.Unicode:= noUni;
+  Result := LowerCase(SHA2.Hash(InputText));
+  SHA2.Free;
+end;
 
 procedure TDBSupport.ConnectQuery(var conn: TFDConnection; var qry: TFDQuery);
 begin

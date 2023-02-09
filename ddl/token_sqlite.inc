@@ -7,7 +7,7 @@
             '  token_hash                 text        NOT NULL, '+
             '  valid_after                text        NOT NULL, '+
             '  valid_until                text        NOT NULL, '+
-            '  person_id                  text        NOT NULL, '+
+            '  person_id                  integer     NOT NULL, '+
             '  CONSTRAINT constraint_name PRIMARY KEY (token_hash) '+
             ');'
            );

@@ -96,6 +96,8 @@ begin
   {$Include ddl\login_fail_sqlite.inc}
   {$Include ddl\contact_sqlite.inc}
   {$Include ddl\list_sqlite.inc}
+  {$Include ddl\login_history_sqlite.inc}
+  {$Include ddl\endpoint_history_sqlite.inc}
 
 
 end;

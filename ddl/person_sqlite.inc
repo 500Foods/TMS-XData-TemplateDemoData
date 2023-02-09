@@ -31,8 +31,8 @@
     begin
       SQL.Clear;
 
-      // Default password for SYSINSTALLER is "TMSWEBCore" - Passwords are SHA256 Hashes with a prefix of TMS-XData-PASSWORD:
-      SQL.Add('insert into person values(0000000000, current_timestamp, 0, "Original", "System", "Installer", current_timestamp, "SYSINSTALLER", "b3722d30bdf265bb16a9b7835dc963558803452320930cf9ff7956ae1ba836ba" );');
+      // Default password for SYSINSTALLER is "TMSWEBCore" - Passwords are SHA256 Hashes with a prefix of XData-Password:
+      SQL.Add('insert into person values(0000000000, current_timestamp, 0, "Original", "System", "Installer", current_timestamp, "SYSINSTALLER", "f40154051817192179edb9dabaec056fdb0eacd977fb443b2fe69232cff23fd4" );');
 
       // Default password for SYSADMIN is not set - Deliberately.  This account is just used when logging system-level functions, and can't be used to login.
       SQL.Add('insert into person values(0000000001, current_timestamp, 0, "Server", "", "Administration", current_timestamp, "SYSADMIN", "NO PASSWORD SET" );');

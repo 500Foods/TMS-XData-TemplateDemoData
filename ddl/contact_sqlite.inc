@@ -30,19 +30,20 @@
       SQL.Clear;
 
       // SYSINSTALLER
-      SQL.Add('insert into contact values( 0, 0, 0, "SYSINSTALLER", 0, 1 );');
+      SQL.Add('insert into contact values( 0, 0, current_timestamp, 0, 0, "SYSINSTALLER", 0, 1 );');
 
       // Add email logins for all users
       SQL.Add('insert into contact  '+
               '  select '+
               '    person_id, '+
               '    1, '+
+              '    current_timestamp, '+
+              '    0, '+
               '    1, '+
               '    lower(account_name) || "@company.com", '+
               '    0, '+
               '    1 '+
-              '  from person '+
-              ');'
+              '  from person;'
             );
       ExecSQL;
     end;
