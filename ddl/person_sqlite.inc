@@ -1,4 +1,4 @@
-  // Person table
+  // person
   with FDQuery1 do
   begin
 
@@ -30,7 +30,14 @@
     if FieldByName('records').AsInteger = 0 then
     begin
       SQL.Clear;
-      SQL.Add('insert into person values(0000000000, "System",    "", "Installer",    current_timestamp, "SYSINSTALL",  "NO PASSWORD SET", current_timestamp, 0);');
+
+      // Default password for SYSINSTALLER is "TMSWEBCore" - Passwords are SHA256 Hashes with a prefix of TMS-XData-PASSWORD:
+      SQL.Add('insert into person values(0000000000, current_timestamp, 0, "Original", "System", "Installer", current_timestamp, "SYSINSTALLER", "b3722d30bdf265bb16a9b7835dc963558803452320930cf9ff7956ae1ba836ba" );');
+
+      // Default password for SYSADMIN is not set - Deliberately.  This account is just used when logging system-level functions, and can't be used to login.
+      SQL.Add('insert into person values(0000000001, current_timestamp, 0, "Server", "", "Administration", current_timestamp, "SYSADMIN", "NO PASSWORD SET" );');
+
+      // Random data
       SQL.Add('insert into person values(0010010001, current_timestamp, 0, "Olivia",    "A", "Smith",       "'+FormatDateTime('yyyy-mm-dd',Now-(20*365)-Random(50 * 365))+'", "OSMITH",      "NO PASSWORD SET" );');
       SQL.Add('insert into person values(0010020002, current_timestamp, 0, "Liam",      "B", "Jones",       "'+FormatDateTime('yyyy-mm-dd',Now-(20*365)-Random(50 * 365))+'", "LJONES",      "NO PASSWORD SET" );');
       SQL.Add('insert into person values(0010030003, current_timestamp, 0, "Emma",      "C", "Williams",    "'+FormatDateTime('yyyy-mm-dd',Now-(20*365)-Random(50 * 365))+'", "EWILLIAMS",   "NO PASSWORD SET" );');
@@ -131,9 +138,9 @@
       SQL.Add('insert into person values(0120910100, current_timestamp, 0, "Isaiah",    "T", "Howard",      "'+FormatDateTime('yyyy-mm-dd',Now-(20*365)-Random(50 * 365))+'", "IHOWARD",     "NO PASSWORD SET" );');
       SQL.Add('insert into person values(0120910101, current_timestamp, 0, "Naomi",     "U", "O''Sullivan", "'+FormatDateTime('yyyy-mm-dd',Now-(20*365)-Random(50 * 365))+'", "NOSULLIVAN",  "NO PASSWORD SET" );');
       SQL.Add('insert into person values(0120910102, current_timestamp, 0, "Matthew",   "V", "Brooks",      "'+FormatDateTime('yyyy-mm-dd',Now-(20*365)-Random(50 * 365))+'", "MBROOKS",     "NO PASSWORD SET" );');
+
       ExecSQL;
     end;
-
   end;
 
 

@@ -1,4 +1,4 @@
-  // Person table
+  // person_role
   with FDQuery1 do
   begin
 
@@ -26,10 +26,13 @@
     if FieldByName('records').AsInteger = 0 then
     begin
       SQL.Clear;
+
       // Grant System Installer the role of Login, Administrator
       SQL.Add('insert into person_role values( 0, 0, current_timestamp, "2100-01-01", current_timestamp, 0);');
       SQL.Add('insert into person_role values( 0, 1, current_timestamp, "2100-01-01", current_timestamp, 0);');
+
       ExecSQL;
     end;
-
   end;
+
+

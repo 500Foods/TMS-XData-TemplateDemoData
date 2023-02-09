@@ -85,10 +85,17 @@ begin
   FDConnection1.Open;
   FDQuery1.Connection := FDConnection1;
 
+  // Include tables specific to your database
   {$Include ddl\person_sqlite.inc}
   {$Include ddl\role_sqlite.inc}
   {$Include ddl\person_role_sqlite.inc}
-
+  {$Include ddl\api_key_sqlite.inc}
+  {$Include ddl\token_sqlite.inc}
+  {$Include ddl\ip_allow_sqlite.inc}
+  {$Include ddl\ip_block_sqlite.inc}
+  {$Include ddl\login_fail_sqlite.inc}
+  {$Include ddl\contact_sqlite.inc}
+  {$Include ddl\list_sqlite.inc}
 
 
 end;
