@@ -1,4 +1,8 @@
-  // api_key
+// [table] api_key
+
+if (DatabaseEngine = 'sqlite') then
+begin
+
   with FDQuery1 do
   begin
 
@@ -16,11 +20,7 @@
     ExecSQL;
 
     SQL.Clear;
-    SQL.Add('select '+
-            '  count(*) records '+
-            'from '+
-            '  api_key;'
-           );
+    SQL.Add('select count(*) records from api_key;');
     Open;
 
     if FieldByName('records').AsInteger = 0 then
@@ -34,3 +34,5 @@
       ExecSQL;
     end;
   end;
+end;
+

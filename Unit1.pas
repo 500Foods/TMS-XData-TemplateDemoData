@@ -31,6 +31,7 @@ type
     procedure DataModuleCreate(Sender: TObject);
     public
       DatabaseName: String;
+      DatabaseEngine: String;
   end;
 
 var
@@ -58,6 +59,20 @@ begin
   // FDPhysSQLiteDriverLink component droppoed on form
   // FDQuery component dropped on form
   // DatabaseName is a Form Variable
+  // DatabaseEngine is a Form Variable
+
+
+  // Use SQLite unless otherwise indicated
+  DatabaseEngine := 'sqlite';
+  i := 1;
+  while i <= ParamCount do
+  begin
+    if Pos('DBENGINE=',Uppercase(ParamStr(i))) = 1 then
+    begin
+      DatabaseEngine := Copy(ParamStr(i),4,length(ParamStr(i)));
+    end;
+    i := i + 1;
+  end;
 
   // Use a different database if one is passed as a parameter
   DatabaseName := 'DemoData.sqlite';
@@ -74,30 +89,35 @@ begin
   // This creates the database if it doesn't already exist
   FDManager.Open;
   FDConnection1.Params.Clear;
-  FDConnection1.Params.DriverID := 'SQLite';
-  FDConnection1.Params.Database := DatabaseName;
-  FDConnection1.Params.Add('Synchronous=Full');
-  FDConnection1.Params.Add('LockingMode=Normal');
-  FDConnection1.Params.Add('SharedCache=False');
-  FDConnection1.Params.Add('UpdateOptions.LockWait=True');
-  FDConnection1.Params.Add('BusyTimeout=10000');
-  FDConnection1.Params.Add('SQLiteAdvanced=page_size=4096');
+
+  if (DatabaseEngine = 'sqlite') then
+  begin
+    FDConnection1.Params.DriverID := 'SQLite';
+    FDConnection1.Params.Database := DatabaseName;
+    FDConnection1.Params.Add('Synchronous=Full');
+    FDConnection1.Params.Add('LockingMode=Normal');
+    FDConnection1.Params.Add('SharedCache=False');
+    FDConnection1.Params.Add('UpdateOptions.LockWait=True');
+    FDConnection1.Params.Add('BusyTimeout=10000');
+    FDConnection1.Params.Add('SQLiteAdvanced=page_size=4096');
+  end;
+
   FDConnection1.Open;
   FDQuery1.Connection := FDConnection1;
 
-  // Include tables specific to your database
-  {$Include ddl\person_sqlite.inc}
-  {$Include ddl\role_sqlite.inc}
-  {$Include ddl\person_role_sqlite.inc}
-  {$Include ddl\api_key_sqlite.inc}
-  {$Include ddl\token_sqlite.inc}
-  {$Include ddl\ip_allow_sqlite.inc}
-  {$Include ddl\ip_block_sqlite.inc}
-  {$Include ddl\login_fail_sqlite.inc}
-  {$Include ddl\contact_sqlite.inc}
-  {$Include ddl\list_sqlite.inc}
-  {$Include ddl\login_history_sqlite.inc}
-  {$Include ddl\endpoint_history_sqlite.inc}
+  // Create and populate tables
+  {$Include ddl\person\person.inc}
+  {$Include ddl\role\role.inc}
+  {$Include ddl\person_role\person_role.inc}
+  {$Include ddl\api_key\api_key.inc}
+  {$Include ddl\token\token.inc}
+  {$Include ddl\ip_allow\ip_allow.inc}
+  {$Include ddl\ip_block\ip_block.inc}
+  {$Include ddl\login_fail\login_fail.inc}
+  {$Include ddl\contact\contact.inc}
+  {$Include ddl\list\list.inc}
+  {$Include ddl\login_history\login_history.inc}
+  {$Include ddl\endpoint_history\endpoint_history.inc}
 
 
 end;

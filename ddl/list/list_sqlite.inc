@@ -1,4 +1,8 @@
-  // list
+// [table] list
+
+if (DatabaseEngine = 'sqlite') then
+begin
+
   with FDQuery1 do
   begin
 
@@ -17,11 +21,7 @@
     ExecSQL;
 
     SQL.Clear;
-    SQL.Add('select '+
-            '  count(*) records '+
-            'from '+
-            '  list;'
-           );
+    SQL.Add('select count(*) records from  list;');
     Open;
 
     if FieldByName('records').AsInteger = 0 then
@@ -50,4 +50,5 @@
       ExecSQL;
     end;
   end;
+end;
 

@@ -155,33 +155,45 @@
         <DCCReference Include="SystemService.pas"/>
         <DCCReference Include="SystemServiceImplementation.pas"/>
         <DCCReference Include="TZDB.pas"/>
-        <None Include="ddl\person_role_sqlite.inc"/>
-        <None Include="ddl\person_sqlite.inc"/>
-        <None Include="ddl\role_sqlite.inc"/>
-        <None Include="ddl\api_key_sqlite.inc"/>
-        <None Include="ddl\token_sqlite.inc"/>
-        <None Include="ddl\ip_allow_sqlite.inc"/>
-        <None Include="ddl\ip_block_sqlite.inc"/>
-        <None Include="ddl\login_fail_sqlite.inc"/>
         <None Include="sql\system\api_key_check_sqlite.inc"/>
         <None Include="sql\system\ip_allow_check_sqlite.inc"/>
         <None Include="sql\system\ip_block_check_sqlite.inc"/>
         <None Include="sql\system\login_fail_insert_sqlite.inc"/>
         <None Include="sql\system\login_fail_check_sqlite.inc"/>
         <None Include="sql\system\ip_block_insert_sqlite.inc"/>
-        <None Include="ddl\contact_sqlite.inc"/>
-        <None Include="ddl\list_sqlite.inc"/>
         <None Include="sql\system\contact_search_sqlite.inc"/>
         <None Include="RandomDLL.dll"/>
         <None Include="sql\system\person_role_check_sqlite.inc"/>
         <None Include="sql\system\person_password_check_sqlite.inc"/>
         <None Include="sql\system\contact_email_sqlite.inc"/>
         <None Include="sql\system\token_insert_sqlite.inc"/>
-        <None Include="ddl\login_history_sqlite.inc"/>
         <None Include="sql\system\login_history_insert_sqlite.inc"/>
         <None Include="sql\system\login_cleanup_sqlite.inc"/>
-        <None Include="ddl\endpoint_history_sqlite.inc"/>
         <None Include="sql\system\endpoint_history_insert_sqlite.inc"/>
+        <None Include="ddl\person\person.inc"/>
+        <None Include="ddl\person\person_sqlite.inc"/>
+        <None Include="ddl\api_key\api_key.inc"/>
+        <None Include="ddl\api_key\api_key_sqlite.inc"/>
+        <None Include="ddl\role\role.inc"/>
+        <None Include="ddl\role\role_sqlite.inc"/>
+        <None Include="ddl\person_role\person_role.inc"/>
+        <None Include="ddl\person_role\person_role_sqlite.inc"/>
+        <None Include="ddl\token\token.inc"/>
+        <None Include="ddl\token\token_sqlite.inc"/>
+        <None Include="ddl\ip_allow\ip_allow.inc"/>
+        <None Include="ddl\ip_allow\ip_allow_sqlite.inc"/>
+        <None Include="ddl\ip_block\ip_block.inc"/>
+        <None Include="ddl\ip_block\ip_block_sqlite.inc"/>
+        <None Include="ddl\login_fail\login_fail.inc"/>
+        <None Include="ddl\login_fail\login_fail_sqlite.inc"/>
+        <None Include="ddl\contact\contact.inc"/>
+        <None Include="ddl\contact\contact_sqlite.inc"/>
+        <None Include="ddl\list\list.inc"/>
+        <None Include="ddl\list\list_sqlite.inc"/>
+        <None Include="ddl\login_history\login_history.inc"/>
+        <None Include="ddl\login_history\login_history_sqlite.inc"/>
+        <None Include="ddl\endpoint_history\endpoint_history.inc"/>
+        <None Include="ddl\endpoint_history\endpoint_history_sqlite.inc"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
@@ -219,7 +231,31 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName="ddl\role\role.inc" Configuration="Release" Class="ProjectFile">
+                    <Platform Name="Win64">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="ddl\token\token.inc" Configuration="Release" Class="ProjectFile">
+                    <Platform Name="Win64">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="ddl\login_fail\login_fail.inc" Configuration="Release" Class="ProjectFile">
+                    <Platform Name="Win64">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="sql\system\login_history_insert_sqlite.inc" Configuration="Release" Class="ProjectFile">
+                    <Platform Name="Win64">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="ddl\endpoint_history\endpoint_history.inc" Configuration="Release" Class="ProjectFile">
                     <Platform Name="Win64">
                         <RemoteDir>.\</RemoteDir>
                         <Overwrite>true</Overwrite>
@@ -237,7 +273,13 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="ddl\ip_allow_sqlite.inc" Configuration="Release" Class="ProjectFile">
+                <DeployFile LocalName="ddl\login_history\login_history.inc" Configuration="Release" Class="ProjectFile">
+                    <Platform Name="Win64">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="ddl\role\role_sqlite.inc" Configuration="Release" Class="ProjectFile">
                     <Platform Name="Win64">
                         <RemoteDir>.\</RemoteDir>
                         <Overwrite>true</Overwrite>
@@ -249,25 +291,7 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="ddl\person_sqlite.inc" Configuration="Release" Class="ProjectFile">
-                    <Platform Name="Win64">
-                        <RemoteDir>.\</RemoteDir>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="ddl\ip_block_sqlite.inc" Configuration="Release" Class="ProjectFile">
-                    <Platform Name="Win64">
-                        <RemoteDir>.\</RemoteDir>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
                 <DeployFile LocalName="sql\system\token_insert_sqlite.inc" Configuration="Release" Class="ProjectFile">
-                    <Platform Name="Win64">
-                        <RemoteDir>.\</RemoteDir>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="ddl\endpoint_history_sqlite.inc" Configuration="Release" Class="ProjectFile">
                     <Platform Name="Win64">
                         <RemoteDir>.\</RemoteDir>
                         <Overwrite>true</Overwrite>
@@ -285,7 +309,19 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="ddl\api_key_sqlite.inc" Configuration="Release" Class="ProjectFile">
+                <DeployFile LocalName="ddl\person_role\person_role.inc" Configuration="Release" Class="ProjectFile">
+                    <Platform Name="Win64">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="ddl\ip_allow\ip_allow_sqlite.inc" Configuration="Release" Class="ProjectFile">
+                    <Platform Name="Win64">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="RandomDLL.dll" Configuration="Release" Class="ProjectFile">
                     <Platform Name="Win64">
                         <RemoteDir>.\</RemoteDir>
                         <Overwrite>true</Overwrite>
@@ -303,13 +339,25 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="RandomDLL.dll" Configuration="Release" Class="ProjectFile">
+                <DeployFile LocalName="ddl\person\person.inc" Configuration="Release" Class="ProjectFile">
                     <Platform Name="Win64">
                         <RemoteDir>.\</RemoteDir>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="ddl\contact_sqlite.inc" Configuration="Release" Class="ProjectFile">
+                <DeployFile LocalName="ddl\contact\contact.inc" Configuration="Release" Class="ProjectFile">
+                    <Platform Name="Win64">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="ddl\list\list.inc" Configuration="Release" Class="ProjectFile">
+                    <Platform Name="Win64">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="ddl\endpoint_history\endpoint_history_sqlite.inc" Configuration="Release" Class="ProjectFile">
                     <Platform Name="Win64">
                         <RemoteDir>.\</RemoteDir>
                         <Overwrite>true</Overwrite>
@@ -321,7 +369,31 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName="ddl\ip_allow\ip_allow.inc" Configuration="Release" Class="ProjectFile">
+                    <Platform Name="Win64">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="sql\system\login_fail_check_sqlite.inc" Configuration="Release" Class="ProjectFile">
+                    <Platform Name="Win64">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="ddl\list\list_sqlite.inc" Configuration="Release" Class="ProjectFile">
+                    <Platform Name="Win64">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="ddl\api_key\api_key.inc" Configuration="Release" Class="ProjectFile">
+                    <Platform Name="Win64">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="ddl\person_role\person_role_sqlite.inc" Configuration="Release" Class="ProjectFile">
                     <Platform Name="Win64">
                         <RemoteDir>.\</RemoteDir>
                         <Overwrite>true</Overwrite>
@@ -333,19 +405,19 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="ddl\list_sqlite.inc" Configuration="Release" Class="ProjectFile">
+                <DeployFile LocalName="ddl\token\token_sqlite.inc" Configuration="Release" Class="ProjectFile">
                     <Platform Name="Win64">
                         <RemoteDir>.\</RemoteDir>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="ddl\role_sqlite.inc" Configuration="Release" Class="ProjectFile">
+                <DeployFile LocalName="ddl\person\person_sqlite.inc" Configuration="Release" Class="ProjectFile">
                     <Platform Name="Win64">
                         <RemoteDir>.\</RemoteDir>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="ddl\person_role_sqlite.inc" Configuration="Release" Class="ProjectFile">
+                <DeployFile LocalName="ddl\contact\contact_sqlite.inc" Configuration="Release" Class="ProjectFile">
                     <Platform Name="Win64">
                         <RemoteDir>.\</RemoteDir>
                         <Overwrite>true</Overwrite>
@@ -357,31 +429,43 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="sql\system\person_role_check_sqlite.inc" Configuration="Release" Class="ProjectFile">
-                    <Platform Name="Win64">
-                        <RemoteDir>.\</RemoteDir>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
                 <DeployFile LocalName="sql\system\login_cleanup_sqlite.inc" Configuration="Release" Class="ProjectFile">
                     <Platform Name="Win64">
                         <RemoteDir>.\</RemoteDir>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="ddl\login_history_sqlite.inc" Configuration="Release" Class="ProjectFile">
+                <DeployFile LocalName="sql\system\person_role_check_sqlite.inc" Configuration="Release" Class="ProjectFile">
                     <Platform Name="Win64">
                         <RemoteDir>.\</RemoteDir>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="ddl\token_sqlite.inc" Configuration="Release" Class="ProjectFile">
+                <DeployFile LocalName="ddl\ip_block\ip_block_sqlite.inc" Configuration="Release" Class="ProjectFile">
                     <Platform Name="Win64">
                         <RemoteDir>.\</RemoteDir>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="ddl\login_fail_sqlite.inc" Configuration="Release" Class="ProjectFile">
+                <DeployFile LocalName="ddl\api_key\api_key_sqlite.inc" Configuration="Release" Class="ProjectFile">
+                    <Platform Name="Win64">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="ddl\ip_block\ip_block.inc" Configuration="Release" Class="ProjectFile">
+                    <Platform Name="Win64">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="ddl\login_fail\login_fail_sqlite.inc" Configuration="Release" Class="ProjectFile">
+                    <Platform Name="Win64">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="ddl\login_history\login_history_sqlite.inc" Configuration="Release" Class="ProjectFile">
                     <Platform Name="Win64">
                         <RemoteDir>.\</RemoteDir>
                         <Overwrite>true</Overwrite>

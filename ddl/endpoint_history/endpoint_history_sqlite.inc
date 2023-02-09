@@ -1,4 +1,10 @@
-  // endpoint_history
+// [table] endpoint_history
+//
+// We don't really have any reason to create sample data here.
+
+if (DatabaseEngine = 'sqlite') then
+begin
+
   with FDQuery1 do
   begin
 
@@ -11,10 +17,8 @@
             '  details                    text                  '+
             ');'
            );
+
     ExecSQL;
-
   end;
-
-  // Note:
-  // We don't really have any reason to create sample data here.
+end;
 

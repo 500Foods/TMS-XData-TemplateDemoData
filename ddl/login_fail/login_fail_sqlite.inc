@@ -1,4 +1,10 @@
-  // login_fail
+// [table] login_fail
+//
+// We don't really have any reason to create sample data here.
+
+if (DatabaseEngine = 'sqlite') then
+begin
+
   with FDQuery1 do
   begin
 
@@ -10,10 +16,8 @@
             '  CONSTRAINT constraint_name PRIMARY KEY (login_id,ip_address,attempted) '+
             ');'
            );
+
     ExecSQL;
-
   end;
-
-  // Note:
-  // We don't really have any reason to create sample data here.
+end;
 

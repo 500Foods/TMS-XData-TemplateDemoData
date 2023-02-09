@@ -1,4 +1,14 @@
-  // person
+// [table] person
+//
+// Names were randomly generated - any resemblance to actual people, living or dead, etc. etc.
+// The first names were drawn from the following link
+// https://www.babycenter.com/baby-names/most-popular/top-baby-names
+// The last names were drawn from the following link
+// https://selectsurnames.com/top-300-surnames/
+
+if (DatabaseEngine = 'sqlite') then
+begin
+
   with FDQuery1 do
   begin
 
@@ -20,11 +30,7 @@
     ExecSQL;
 
     SQL.Clear;
-    SQL.Add('select '+
-            '  count(*) records '+
-            'from '+
-            '  person;'
-           );
+    SQL.Add('select count(*) records from person;');
     Open;
 
     if FieldByName('records').AsInteger = 0 then
@@ -142,14 +148,8 @@
       ExecSQL;
     end;
   end;
+end;
 
-
-// NOTES:
-// Names were randomly generated - any resemblance to actual people, living or dead, etc. etc.
-// The first names were drawn from the following link
-// https://www.babycenter.com/baby-names/most-popular/top-baby-names
-// The last names were drawn from the following link
-// https://selectsurnames.com/top-300-surnames/
 
 
 

@@ -1,4 +1,8 @@
-  // role
+// [table] role
+
+if (DatabaseEngine = 'sqlite') then
+begin
+
   with FDQuery1 do
   begin
 
@@ -16,11 +20,7 @@
     ExecSQL;
 
     SQL.Clear;
-    SQL.Add('select '+
-            '  count(*) records '+
-            'from '+
-            '  role;'
-           );
+    SQL.Add('select count(*) records from role;');
     Open;
 
     if FieldByName('records').AsInteger = 0 then
@@ -37,3 +37,4 @@
       ExecSQL;
     end;
   end;
+end;

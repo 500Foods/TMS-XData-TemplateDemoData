@@ -1,4 +1,8 @@
-  // ip_block
+// [table] ip_block
+
+if (DatabaseEngine = 'sqlite') then
+begin
+
   with FDQuery1 do
   begin
 
@@ -16,11 +20,7 @@
     ExecSQL;
 
     SQL.Clear;
-    SQL.Add('select '+
-            '  count(*) records '+
-            'from '+
-            '  ip_block;'
-           );
+    SQL.Add('select count(*) records from ip_block;');
     Open;
 
     if FieldByName('records').AsInteger = 0 then
@@ -33,3 +33,5 @@
       ExecSQL;
     end;
   end;
+end;
+

@@ -1,4 +1,10 @@
-  // token
+// [table] token
+//
+// We don't really have any reason to create sample data here.
+
+if (DatabaseEngine = 'sqlite') then
+begin
+
   with FDQuery1 do
   begin
 
@@ -11,10 +17,8 @@
             '  CONSTRAINT constraint_name PRIMARY KEY (token_hash) '+
             ');'
            );
+
     ExecSQL;
-
   end;
-
-  // Note:
-  // We don't really have any reason to create sample data here.
+end;
 

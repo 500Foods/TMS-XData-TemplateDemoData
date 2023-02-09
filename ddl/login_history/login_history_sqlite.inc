@@ -1,4 +1,10 @@
-  // login_history
+// [table] login_history
+//
+// We don't really have any reason to create sample data here.
+
+if (DatabaseEngine = 'sqlite') then
+begin
+
   with FDQuery1 do
   begin
 
@@ -10,10 +16,8 @@
             '  CONSTRAINT constraint_name PRIMARY KEY (logged_in, person_id, ip_address) '+
             ');'
            );
+
     ExecSQL;
-
   end;
-
-  // Note:
-  // We don't really have any reason to create sample data here.
+end;
 

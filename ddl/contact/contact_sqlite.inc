@@ -1,4 +1,12 @@
-  // contact
+// [table] contact
+//
+// list_contact refers to the list table, containing arbitrary lists of things.
+// In this case, the list includes things like 'email', 'telephone','fax', 'home', etc.
+// preference is where the sort order is kept.
+
+if (DatabaseEngine = 'sqlite') then
+begin
+
   with FDQuery1 do
   begin
 
@@ -18,11 +26,7 @@
     ExecSQL;
 
     SQL.Clear;
-    SQL.Add('select '+
-            '  count(*) records '+
-            'from '+
-            '  contact;'
-           );
+    SQL.Add('select count(*) records from contact;');
     Open;
 
     if FieldByName('records').AsInteger = 0 then
@@ -45,13 +49,9 @@
               '    1 '+
               '  from person;'
             );
+
       ExecSQL;
     end;
-
   end;
-
-  // Notes
-  // list_contact refers to the list table, containing arbitrary lists of things.
-  // In this case, the list includes things like 'email', 'telephone','fax', 'home', etc.
-  // preference is where the sort order is kept.
+end;
 
