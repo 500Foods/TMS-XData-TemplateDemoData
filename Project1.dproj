@@ -155,6 +155,8 @@
         <DCCReference Include="SystemService.pas"/>
         <DCCReference Include="SystemServiceImplementation.pas"/>
         <DCCReference Include="TZDB.pas"/>
+        <DCCReference Include="PersonService.pas"/>
+        <DCCReference Include="PersonServiceImplementation.pas"/>
         <None Include="RandomDLL.dll"/>
         <None Include="ddl\person\person.inc"/>
         <None Include="ddl\person\person_sqlite.inc"/>
@@ -208,6 +210,10 @@
         <None Include="sql\system\person_role_check\person_role_check_sqlite.inc"/>
         <None Include="sql\system\token_insert\token_insert.inc"/>
         <None Include="sql\system\token_insert\token_insert_sqlite.inc"/>
+        <None Include="sql\person\directory\directory.inc"/>
+        <None Include="sql\person\directory\directory_sqlite.inc"/>
+        <None Include="sql\system\jwt_check\jwt_check.inc"/>
+        <None Include="sql\system\jwt_check\jwt_check_sqlite.inc"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
@@ -287,6 +293,12 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName="sql\person\directory\directory.inc" Configuration="Release" Class="ProjectFile">
+                    <Platform Name="Win64">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="sql\system\ip_block_insert\ip_block_insert_sqlite.inc" Configuration="Release" Class="ProjectFile">
                     <Platform Name="Win64">
                         <RemoteDir>.\</RemoteDir>
@@ -330,6 +342,12 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="sql\system\login_history_insert\login_history_insert.inc" Configuration="Release" Class="ProjectFile">
+                    <Platform Name="Win64">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="sql\person\directory\directory_sqlite.inc" Configuration="Release" Class="ProjectFile">
                     <Platform Name="Win64">
                         <RemoteDir>.\</RemoteDir>
                         <Overwrite>true</Overwrite>
@@ -491,6 +509,12 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
+                <DeployFile LocalName="sql\system\jwt_check\jwt_check_sqlite.inc" Configuration="Release" Class="ProjectFile">
+                    <Platform Name="Win64">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="sql\system\contact_search\contact_search.inc" Configuration="Release" Class="ProjectFile">
                     <Platform Name="Win64">
                         <RemoteDir>.\</RemoteDir>
@@ -540,6 +564,12 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="sql\system\login_fail_check\login_fail_check.inc" Configuration="Release" Class="ProjectFile">
+                    <Platform Name="Win64">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="sql\system\jwt_check\jwt_check.inc" Configuration="Release" Class="ProjectFile">
                     <Platform Name="Win64">
                         <RemoteDir>.\</RemoteDir>
                         <Overwrite>true</Overwrite>

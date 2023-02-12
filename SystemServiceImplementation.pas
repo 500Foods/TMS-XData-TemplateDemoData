@@ -23,7 +23,6 @@ uses
   FireDAC.Comp.BatchMove.Dataset,
   FireDAC.Comp.BatchMove.JSON,
 
-
   SystemService;
 
 type
@@ -32,7 +31,7 @@ type
   private
 
     function Info(TZ: String):TStream;
-    function Login(Login_ID: String; Password: String; API_Key: String; TZ: String):String;
+    function Login(Login_ID: String; Password: String; API_Key: String; TZ: String):TStream;
 
   end;
 
@@ -52,6 +51,7 @@ begin
   TXDataOperationContext.Current.Response.Headers.SetValue('content-type', 'application/json');
 
   // Figure out if we have a valid TZ
+  ClientTimeZone := TBundledTimeZone.GetTimeZone('America/Vancouver');
   try
     ClientTimeZone := TBundledTimeZone.GetTimeZone(TZ);
     ValidTimeZone := True;
@@ -77,7 +77,8 @@ begin
   ParametersArray := TJSONObject.ParseJSONValue('['+Trim(MainForm.AppParameters.DelimitedText)+']') as TJSONArray;
 
   // This gets us a JSON Array of Server IP Addresses
-  ServerIPArray := TJSONObject.ParseJSONValue('['+MainForm.IPAddresses.DelimitedText+']') as TJSONArray;
+  ServerIPArray := TJSONObject.ParseJSONValue('['+StringReplace(MainForm.IPAddresses.DelimitedText,'  ',' ',[rfReplaceAll])+']') as TJSONArray;
+
 
   ResultJSON.AddPair('Application Name',MainForm.AppName);
   ResultJSON.AddPair('Application Version',MainForm.AppVersion);
@@ -93,7 +94,7 @@ begin
   ResultJSON.AddPair('IP Address (Client)',TXDataOperationContext.Current.Request.RemoteIP);
   ResultJSON.AddPair('Current Time (Server)',FormatDateTime('yyyy-mm-dd hh:nn:ss.zzz', Now));
   ResultJSON.AddPair('Current Time (UTC)',FormatDateTime('yyyy-mm-dd hh:nn:ss.zzz', TTimeZone.Local.ToUniversalTime(Now)));
-  if ValidTimeZone
+  if ValidTimeZone and Assigned(ClientTimeZone)
   then ResultJSON.AddPair('Current Time (Client)',FormatDateTime('yyyy-mm-dd hh:nn:ss.zzz', ClientTimeZone.ToLocalTime(TTimeZone.Local.ToUniversalTime(Now))))
   else ResultJSON.AddPair('current Time (Client)','Invalid Client TimeZone');
 
@@ -111,7 +112,7 @@ end;
 
 
 
-function TSystemService.Login(Login_ID, Password, API_Key, TZ: String): String;
+function TSystemService.Login(Login_ID, Password, API_Key, TZ: String): TStream;
 var
   DBConn: TFDConnection;
   Query1: TFDQuery;
@@ -126,10 +127,13 @@ var
   PasswordHash: String;
 
   JWT: TJWT;
+  JWTString: String;
   IssuedAt: TDateTime;
   ExpiresAt: TDateTime;
 
 begin
+  // Returning JWT, so flag it as such
+  TXDataOperationContext.Current.Response.Headers.SetValue('content-type', 'application/jwt');
 
   // Time this event
   ElapsedTime := Now;
@@ -138,9 +142,6 @@ begin
   IssuedAt := Now;
   ExpiresAt := IncMinute(IssuedAt,15);
 
-  // Return 'Not Authenticated' until we've got a valid JWT to return
-  Result := 'Not Authenticated';
-
   // Check that we've got values for all of the above.
   if Trim(Login_ID) = '' then raise EXDataHttpUnauthorized.Create('Login_ID cannot be blank');
   if Trim(Password) = '' then raise EXDataHttpUnauthorized.Create('Password cannot be blank');
@@ -148,7 +149,6 @@ begin
   if Trim(TZ) = '' then raise EXDataHttpUnauthorized.Create('TZ cannot be blank');
 
   // Figure out if we have a valid TZ
-  ValidTimeZone := False;
   try
     ClientTimeZone := TBundledTimeZone.GetTimeZone(TZ);
     ValidTimeZone := True;
@@ -355,13 +355,15 @@ begin
     JWT.Claims.SetClaimOfType<string>( 'lnm', Query1.FieldByName('last_name').AsString );
     JWT.Claims.SetClaimOfType<string>( 'anm', Query1.FieldByName('account_name').AsString );
     JWT.Claims.SetClaimOfType<string>( 'net', TXDataOperationContext.Current.Request.RemoteIP );
-    JWT.Claims.SetClaimOfType<string>( 'iat', FormatDateTime('yyyy-mm-dd hh:nn:ss.zzz', IssuedAt)+' '+MainForm.AppTimeZone);
-    JWT.Claims.SetClaimOfType<string>( 'eat', FormatDateTime('yyyy-mm-dd hh:nn:ss.zzz', ExpiresAt)+' '+MainForm.AppTimeZone);
-    JWT.Claims.Expiration := ExpiresAt;
+    JWT.Claims.SetClaimOfType<string>( 'aft', FormatDateTime('yyyy-mm-dd hh:nn:ss.zzz',  TTimeZone.local.ToUniversalTime(IssuedAt))+' UTC');
+    JWT.Claims.SetClaimOfType<string>( 'unt', FormatDateTime('yyyy-mm-dd hh:nn:ss.zzz',  TTimeZone.local.ToUniversalTime(ExpiresAt))+' UTC');
+    JWT.Claims.SetClaimOfType<integer>('iat', DateTimeToUnix(TTimeZone.local.ToUniversalTime(IssuedAt)));
+    JWT.Claims.Expiration := ExpiresAt; // Gets converted to UTC automatically
 
     // Generate the actual JWT
-    Result := TJOSE.SHA256CompactToken(ServerContainer.XDataServerJWT.Secret, JWT);
-    Result := 'Bearer '+Result;
+    JWTSTring := 'Bearer '+TJOSE.SHA256CompactToken(ServerContainer.XDataServerJWT.Secret, JWT);
+    Result := TStringStream.Create(JWTString);
+
   finally
     JWT.Free;
   end;
@@ -369,7 +371,7 @@ begin
   // Add the JWT to a table that we'll use to help with expring tokens
   try
     {$Include sql\system\token_insert\token_insert.inc}
-    Query1.ParamByName('TOKENHASH').AsString := DBSupport.HashThis(Result);
+    Query1.ParamByName('TOKENHASH').AsString := DBSupport.HashThis(JWTString);
     Query1.ParamByName('PERSONID').AsInteger := PersonID;
     Query1.ParamByName('VALIDAFTER').AsDateTime := TTimeZone.local.ToUniversalTime(IssuedAt);
     Query1.ParamByName('VALIDUNTIL').AsDateTime := TTimeZone.local.ToUniversalTime(ExpiresAt);

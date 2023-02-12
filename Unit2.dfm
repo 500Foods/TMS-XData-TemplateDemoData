@@ -2,7 +2,7 @@ object MainForm: TMainForm
   Left = 0
   Top = 0
   Caption = 'XData Template Demo Data'
-  ClientHeight = 242
+  ClientHeight = 346
   ClientWidth = 743
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -14,17 +14,18 @@ object MainForm: TMainForm
   OnCreate = FormCreate
   DesignSize = (
     743
-    242)
+    346)
   PixelsPerInch = 96
   TextHeight = 13
   object mmInfo: TMemo
     Left = 8
     Top = 40
     Width = 727
-    Height = 194
+    Height = 298
     Anchors = [akLeft, akTop, akRight, akBottom]
     ReadOnly = True
     TabOrder = 0
+    ExplicitHeight = 194
   end
   object btStart: TButton
     Left = 8

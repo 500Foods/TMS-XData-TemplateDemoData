@@ -5,7 +5,7 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
   System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs,
-  Vcl.StdCtrls, Unit1, System.IOUtils, System.DateUtils, IdStack, psAPI, WinAPi.ShellAPI;
+  Vcl.StdCtrls, Unit1, System.IOUtils, System.DateUtils, IdStack, IdGlobal, psAPI, WinAPi.ShellAPI;
 
 type
   TMainForm = class(TForm)
@@ -209,14 +209,31 @@ end;
 procedure TMainForm.GetIPAddresses(List: TStringList);
 var
   i: Integer;
+  IPList: TIdStackLocalAddressList;
+  IPAddr: TIdStackLocalAddress;
 begin
   TIdStack.IncUsage;
   List.Clear;
+  IPList := TIdStackLocalAddressList.Create;
   try
-    GStack.AddLocalAddressesToList(List);
+    GStack.GetLocalAddressList(IPList);
+    for i := 0 to IPList.Count-1 do
+    begin
+      IPAddr := IPList[I];
+      case IPAddr.IPVersion of
+        Id_IPv4: begin
+                   List.Add('IPV4: '+IPAddr.IPAddress);
+                 end;
+        Id_IPv6: begin
+                   List.Add('IPV6: '+IPAddr.IPAddress);
+                 end;
+        end;
+    end;
   finally
+    IPList.Free;
     TIdStack.DecUsage;
   end;
+  List.Sort;
   i := 0;
   while i < List.Count do
   begin
@@ -230,6 +247,7 @@ function TMainForm.GetMemoryUsage: NativeUInt;
 var
   MemCounters: TProcessMemoryCounters;
 begin
+  Result := 0;
   MemCounters.cb := SizeOf(MemCounters);
   if GetProcessMemoryInfo(GetCurrentProcess, @MemCounters, SizeOf(MemCounters))
   then Result := MemCounters.WorkingSetSize

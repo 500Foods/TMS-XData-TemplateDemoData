@@ -67,7 +67,7 @@ type
     ///    - EST
     ///    - PST8PDT
     ///  </param>
-    [HttpGet] function Login(Login_ID: String; Password: String; API_Key: String; TZ: String):String;
+    [HttpGet] function Login(Login_ID: String; Password: String; API_Key: String; TZ: String):TStream;
 
   end;
 

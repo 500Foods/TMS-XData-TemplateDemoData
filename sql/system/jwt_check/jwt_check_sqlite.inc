@@ -1,0 +1,22 @@
+// [query] jwt_check
+
+if (ServerContainer.DatabaseEngine = 'sqlite') then
+begin
+
+  with Query1 do
+  begin
+
+    SQL.Clear;
+    SQL.Add('select '+
+            '  token_hash, valid_until '+
+            'from '+
+            '  token '+
+            'where '+
+            '  (token_hash = :TOKENHASH) '+
+            '  and (Datetime("now") > valid_after) '+
+            '  and (Datetime("now") < valid_until) '+
+            ';'
+           );
+
+  end;
+end;

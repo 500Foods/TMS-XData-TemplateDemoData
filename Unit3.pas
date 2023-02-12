@@ -5,6 +5,7 @@ interface
 uses
   System.SysUtils,
   System.Classes,
+  System.NetEncoding,
 
   XData.Server.Module,
   XData.Service.Common,
@@ -17,9 +18,14 @@ uses
   FireDAC.Stan.Option,
   FireDAC.Stan.Param,
   FireDAC.Comp.Client,
+  FireDAC.Stan.StorageBin,
+  FireDAC.Stan.StorageJSON,
+  FireDAC.Stan.StorageXML,
   FireDAC.Comp.BatchMove,
   FireDAC.Comp.BatchMove.Dataset,
-  FireDAC.Comp.BatchMove.JSON;
+  FireDAC.Comp.BatchMove.JSON,
+
+  ActiveX; // For Co/UnInitailze when using XML StreamFormat;
 
 type
   TDBSupport = class(TDataModule)
@@ -30,6 +36,7 @@ type
     procedure ConnectQuery(var conn: TFDConnection; var qry: TFDQuery);
     procedure DisconnectQuery(var conn: TFDConnection; var qry: TFDQuery);
     function HashThis(InputText: String):String;
+    procedure Export(Format: String; QueryResult: TFDQuery; var OutputStream: TStream);
   end;
 
 var
@@ -53,6 +60,146 @@ begin
   SHA2.Unicode:= noUni;
   Result := LowerCase(SHA2.Hash(InputText));
   SHA2.Free;
+end;
+
+procedure TDBSupport.Export(Format: String; QueryResult: TFDQuery;  var OutputStream: TStream);
+var
+  ContentFormat: String;
+  ContentType: String;
+
+  L: TStringList;
+  S: String;
+
+  bm: TFDBatchMove;
+  bw: TFDBatchMoveJSONWriter;
+  br: TFDBatchMoveDataSetReader;
+
+  ms: TMemoryStream;
+
+  i: Integer;
+begin
+  ContentFormat := Uppercase(Trim(Format));
+  ContentType := 'text/plain';
+
+
+  if (ContentFormat = 'FIREDAC') then
+  begin
+    ContentType := 'application/json';
+    OutputStream := TMemoryStream.Create;
+    QueryResult.SaveToStream(OutputStream, sfJSON);
+  end
+
+  else if (ContentFormat = 'XML') then
+  begin
+    ContentType := 'application/xml';
+    OutputStream := TMemoryStream.Create;
+    CoInitialize(nil);
+    try
+      QueryResult.SaveToStream(OutputStream, sfXML);
+    finally
+      CoUninitialize;
+    end;
+  end
+
+  else if (ContentFormat = 'BINARY') then
+  begin
+    ContentType := 'application/json';
+    ms := TMemoryStream.Create;
+    try
+      QueryResult.SaveToStream(ms,sfBinary);
+      ms.Position := 0;
+      OutputStream := TMemoryStream.Create;
+      TNetEncoding.Base64.Encode(ms, OutputStream);
+    finally
+      ms.Free;
+    end;
+  end
+
+  else if (ContentFormat = 'PLAIN') then
+  begin
+    ContentType := 'text/plain';
+    L := TStringList.Create;
+    S := '';
+    try
+      QueryResult.First;
+      while not QueryResult.Eof do
+      begin
+        S := '';
+        for i := 0 to QueryResult.FieldCount - 1 do
+        begin
+          if (S > '') then S := S + '';
+          S := S + '' + QueryResult.Fields[i].AsString + '';
+        end;
+        L.Add(S);
+        QueryResult.Next;
+      end;
+    finally
+      OutputStream := TMemoryStream.Create;
+      L.SaveToStream(OutputStream);
+      L.Free;
+    end;
+  end
+
+  else if (ContentFormat = 'CSV') then
+  begin
+    ContentType := 'text/csv';
+    L := TStringList.Create;
+    S := '';
+    for i := 0 to QueryResult.FieldCount - 1 do
+    begin
+      if (S > '') then S := S + ',';
+      S := S + '"' +QueryResult.FieldDefs.Items[I].Name + '"';
+    end;
+    L.Add(S);
+    try
+      QueryResult.First;
+      while not (QueryResult.EOF) do
+      begin
+        S := '';
+        for i := 0 to QueryResult.FieldCount - 1 do
+        begin
+          if (S > '') then S := S + ',';
+          S := S + '"' + QueryResult.Fields[I].AsString + '"';
+        end;
+        L.Add(S);
+        QueryResult.Next;
+      end;
+    finally
+      OutputStream := TMemoryStream.Create;
+      L.SaveToStream(OutputStream);
+      L.Free;
+    end;
+  end
+
+  else if ContentFormat = 'FIREDAC' then
+  begin
+    ContentType := 'application/json';
+    OutputStream := TMemoryStream.Create;
+    QueryResult.SaveToStream(OutputStream, sfJSON);
+  end
+
+  else // if ContentFormat = 'JSON' then
+  begin
+    ContentType := 'application/json';
+    OutputStream := TMemoryStream.Create;
+    bm := TFDBatchMove.Create(nil);
+    bw := TFDBatchMoveJSONWriter.Create(nil);
+    br := TFDBatchMoveDataSetReader.Create(nil);
+    try
+      br.Dataset := QueryResult;
+      bw.Stream := OutputStream;
+      bm.Reader := br;
+      bm.Writer := bw;
+      bm.Execute;
+    finally
+      br.Free;
+      bw.Free;
+      bm.Free;
+    end;
+  end;
+
+  TXDataOperationContext.Current.Response.Headers.SetValue('content-type', ContentType);
+
 end;
 
 procedure TDBSupport.ConnectQuery(var conn: TFDConnection; var qry: TFDQuery);

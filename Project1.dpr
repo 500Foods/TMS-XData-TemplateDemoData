@@ -7,7 +7,9 @@ uses
   Unit3 in 'Unit3.pas' {DBSupport: TDataModule},
   SystemService in 'SystemService.pas',
   SystemServiceImplementation in 'SystemServiceImplementation.pas',
-  TZDB in 'TZDB.pas';
+  TZDB in 'TZDB.pas',
+  PersonService in 'PersonService.pas',
+  PersonServiceImplementation in 'PersonServiceImplementation.pas';
 
 {$R *.res}
 
