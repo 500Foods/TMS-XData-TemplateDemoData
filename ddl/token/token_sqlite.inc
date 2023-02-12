@@ -5,7 +5,7 @@
 if (DatabaseEngine = 'sqlite') then
 begin
 
-  with FDQuery1 do
+  with Query1 do
   begin
 
     SQL.Clear;
@@ -14,6 +14,7 @@ begin
             '  valid_after                text        NOT NULL, '+
             '  valid_until                text        NOT NULL, '+
             '  person_id                  integer     NOT NULL, '+
+            '  application                integer     NOT NULL, '+
             '  CONSTRAINT constraint_name PRIMARY KEY (token_hash) '+
             ');'
            );

@@ -5,7 +5,7 @@
 if (DatabaseEngine = 'sqlite') then
 begin
 
-  with FDQuery1 do
+  with Query1 do
   begin
 
     SQL.Clear;

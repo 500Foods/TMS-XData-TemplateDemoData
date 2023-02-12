@@ -5,7 +5,7 @@
 if (DatabaseEngine = 'sqlite') then
 begin
 
-  with FDQuery1 do
+  with Query1 do
   begin
 
     SQL.Clear;
@@ -13,6 +13,7 @@ begin
             '  logged_in                  text        NOT NULL, '+
             '  person_id                  integer     NOT NULL, '+
             '  ip_address                 text        NOT NULL, '+
+            '  application                text        NOT NULL, '+
             '  CONSTRAINT constraint_name PRIMARY KEY (logged_in, person_id, ip_address) '+
             ');'
            );

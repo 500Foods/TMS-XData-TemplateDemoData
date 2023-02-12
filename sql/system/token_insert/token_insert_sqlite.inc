@@ -9,12 +9,13 @@ begin
     SQL.Clear;
     SQL.Add('insert into '+
             '  token '+
-            '    (token_hash, valid_after, valid_until, person_id) '+
+            '    (token_hash, valid_after, valid_until, person_id, application) '+
             'values( '+
             '  :TOKENHASH, '+
             '  :VALIDAFTER, '+
             '  :VALIDUNTIL, '+
-            '  :PERSONID '+
+            '  :PERSONID, '+
+            '  :APPLICATION '+
             ');'
            );
 

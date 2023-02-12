@@ -28,7 +28,7 @@ type
   public
     { Public declarations }
     procedure ConnectQuery(var conn: TFDConnection; var qry: TFDQuery);
-    procedure CleanupQuery(var conn: TFDConnection; var qry: TFDQuery);
+    procedure DisconnectQuery(var conn: TFDConnection; var qry: TFDQuery);
     function HashThis(InputText: String):String;
   end;
 
@@ -63,12 +63,29 @@ begin
     conn.Params.Clear;
     conn.Params.DriverID := 'SQLite';
     conn.Params.Database := ServerContainer.DatabaseName;
+    conn.Params.Add('DateTimeFormat=String');
     conn.Params.Add('Synchronous=Full');
     conn.Params.Add('LockingMode=Normal');
     conn.Params.Add('SharedCache=False');
     conn.Params.Add('UpdateOptions.LockWait=True');
     conn.Params.Add('BusyTimeout=10000');
     conn.Params.Add('SQLiteAdvanced=page_size=4096');
+    // Extras
+    conn.FormatOptions.StrsEmpty2Null := True;
+    with conn.FormatOptions do
+    begin
+      StrsEmpty2Null := true;
+      OwnMapRules := True;
+      with MapRules.Add do begin
+        SourceDataType := dtWideMemo;
+        TargetDataType := dtWideString;
+      end;
+//      with MapRules.Add do begin
+//        NameMask := 'valid_%';
+//        SourceDataType := dtWideMemo;
+//        TargetDataType := dtDateTime;
+//      end;
+    end;
     conn.Open;
 
     // Create a query to do our work
@@ -83,7 +100,7 @@ begin
   end;
 end;
 
-procedure TDBSupport.CleanupQuery(var conn: TFDConnection; var qry: TFDQuery);
+procedure TDBSupport.DisconnectQuery(var conn: TFDConnection; var qry: TFDQuery);
 begin
   try
     // Cleanup query that was created

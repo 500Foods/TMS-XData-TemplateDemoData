@@ -13,8 +13,8 @@ begin
             '  ip_block '+
             'where '+
             '  ip_address = :IPADDRESS '+
-            '  and (valid_after < current_timestamp) '+
-            '  and (valid_until > current_timestamp);'
+            '  and (valid_after < Datetime("now")) '+
+            '  and (valid_until > Datetime("now"));'
            );
 
   end;

@@ -13,7 +13,7 @@ begin
     SQL.Add('delete from '+
             '  login_fail '+
             'where '+
-            '  attempted < Datetime("now", "-24 hours", "localtime");'
+            '  attempted < Datetime("now", "-24 hours");'
            );
 
     SQL.Add('delete from '+
@@ -26,25 +26,25 @@ begin
     SQL.Add('delete from '+
             '  login_history '+
             'where '+
-            '  logged_in < Datetime("now", "-90 days", "localtime");'
+            '  logged_in < Datetime("now", "-90 days");'
            );
 
     SQL.Add('delete from '+
             '  ip_block '+
             'where '+
-            '  valid_until < Datetime("now", "-7 days", "localtime");'
+            '  valid_until < Datetime("now", "-7 days");'
            );
 
     SQL.Add('delete from '+
             '  ip_allow '+
             'where '+
-            '  valid_until < Datetime("now", "-7 days", "localtime");'
+            '  valid_until < Datetime("now", "-7 days");'
            );
 
     SQL.Add('delete from '+
             '  token '+
             'where '+
-            '  valid_until < Datetime("now", "-24 hours", "localtime");'
+            '  valid_until < Datetime("now", "-24 hours");'
            );
   end;
 end;

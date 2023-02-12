@@ -3,7 +3,7 @@
 if (DatabaseEngine = 'sqlite') then
 begin
 
-  with FDQuery1 do
+  with Query1 do
   begin
 
     SQL.Clear;
@@ -28,8 +28,8 @@ begin
       SQL.Clear;
 
       // Local IPs
-      SQL.Add('insert into ip_allow values( "127.0.0.1", current_timestamp, 0, current_timestamp, "2100-01-01", "Local development IP address - Always Allow" );');
-      SQL.Add('insert into ip_allow values( "::1", current_timestamp, 0, current_timestamp, "2100-01-01", "Local development IP address - Always Allow" );');
+      SQL.Add('insert into ip_allow values( "127.0.0.1", Datetime("now"), 0, Datetime("now"), Datetime("now","+100 years"), "Local development IP address - Always Allow" );');
+      SQL.Add('insert into ip_allow values( "::1", Datetime("now"), 0, Datetime("now"),Datetime("now","+100 years"), "Local development IP address - Always Allow" );');
 
       ExecSQL;
     end;

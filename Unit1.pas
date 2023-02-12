@@ -25,13 +25,15 @@ type
     XDataServerJWT: TSparkleJwtMiddleware;
     XDataServerCompress: TSparkleCompressMiddleware;
     XDataServerCORS: TSparkleCorsMiddleware;
-    FDConnection1: TFDConnection;
-    FDQuery1: TFDQuery;
+    DBConn: TFDConnection;
+    Query1: TFDQuery;
     FDPhysSQLiteDriverLink1: TFDPhysSQLiteDriverLink;
     procedure DataModuleCreate(Sender: TObject);
     public
       DatabaseName: String;
       DatabaseEngine: String;
+      DatabaseUsername: String;
+      DatabasePassword: String;
   end;
 
 var
@@ -55,55 +57,68 @@ begin
     '### Overview'#13#10 +
     'This is the REST API for interacting with the XData Template Demo.';
 
-  // FDConnection component dropped on form
+  // FDConnection component dropped on form - DBConn
   // FDPhysSQLiteDriverLink component droppoed on form
-  // FDQuery component dropped on form
+  // FDQuery component dropped on form - Query1
   // DatabaseName is a Form Variable
   // DatabaseEngine is a Form Variable
+  // DatabaseUsername is a Form Variable
+  // DatabasePassword is a Form Variable
 
-
-  // Use SQLite unless otherwise indicated
   DatabaseEngine := 'sqlite';
-  i := 1;
-  while i <= ParamCount do
-  begin
-    if Pos('DBENGINE=',Uppercase(ParamStr(i))) = 1 then
-    begin
-      DatabaseEngine := Copy(ParamStr(i),4,length(ParamStr(i)));
-    end;
-    i := i + 1;
-  end;
-
-  // Use a different database if one is passed as a parameter
   DatabaseName := 'DemoData.sqlite';
+  DatabaseUsername := 'dbuser';
+  DatabasePassword := 'dbpass';
+
   i := 1;
   while i <= ParamCount do
   begin
-    if Pos('DB=',Uppercase(ParamStr(i))) = 1 then
-    begin
-      DatabaseName := Copy(ParamStr(i),4,length(ParamStr(i)));
-    end;
+    if Pos('DBNAME=',Uppercase(ParamStr(i))) = 1
+    then DatabaseName := Copy(ParamStr(i),8,length(ParamStr(i)));
+
+    if Pos('DBENGINE=',Uppercase(ParamStr(i))) = 1
+    then DatabaseEngine := Copy(ParamStr(i),10,length(ParamStr(i)));
+
+    if Pos('DBUSER=',Uppercase(ParamStr(i))) = 1
+    then DatabaseUsername := Copy(ParamStr(i),8,length(ParamStr(i)));
+
+    if Pos('DBPASS=',Uppercase(ParamStr(i))) = 1
+    then DatabasePassword := Copy(ParamStr(i),8,length(ParamStr(i)));
+
     i := i + 1;
   end;
 
-  // This creates the database if it doesn't already exist
   FDManager.Open;
-  FDConnection1.Params.Clear;
+  DBConn.Params.Clear;
 
   if (DatabaseEngine = 'sqlite') then
   begin
-    FDConnection1.Params.DriverID := 'SQLite';
-    FDConnection1.Params.Database := DatabaseName;
-    FDConnection1.Params.Add('Synchronous=Full');
-    FDConnection1.Params.Add('LockingMode=Normal');
-    FDConnection1.Params.Add('SharedCache=False');
-    FDConnection1.Params.Add('UpdateOptions.LockWait=True');
-    FDConnection1.Params.Add('BusyTimeout=10000');
-    FDConnection1.Params.Add('SQLiteAdvanced=page_size=4096');
+    // This creates the database if it doesn't already exist
+    DBConn.Params.DriverID := 'SQLite';
+    DBConn.Params.Database := DatabaseName;
+    DBConn.Params.Add('DateTimeFormat=String');
+    DBConn.Params.Add('Synchronous=Full');
+    DBConn.Params.Add('LockingMode=Normal');
+    DBConn.Params.Add('SharedCache=False');
+    DBConn.Params.Add('UpdateOptions.LockWait=True');
+    DBConn.Params.Add('BusyTimeout=10000');
+    DBConn.Params.Add('SQLiteAdvanced=page_size=4096');
+    // Extras
+    DBConn.FormatOptions.StrsEmpty2Null := True;
+    with DBConn.FormatOptions do
+    begin
+      StrsEmpty2Null := true;
+      OwnMapRules := True;
+      with MapRules.Add do begin
+        SourceDataType := dtWideMemo;
+        TargetDataType := dtWideString;
+      end;
+
+    end;
   end;
 
-  FDConnection1.Open;
-  FDQuery1.Connection := FDConnection1;
+  DBConn.Open;
+  Query1.Connection := DBConn;
 
   // Create and populate tables
   {$Include ddl\person\person.inc}

@@ -12,10 +12,10 @@ begin
             '   (ip_address, last_modified, last_modifier, valid_after, valid_until, justification) '+
             'values( '+
             '  :IPADDRESS, '+
-            '  current_timestamp, '+
+            '  Datetime("now"), '+
             '  1, '+
-            '  current_timestamp, '+
-            '  Datetime("now", "+10 minutes", "localtime"), '+
+            '  Datetime("now"), '+
+            '  Datetime("now", "+10 minutes"), '+
             '  :REASON) '
            );
 

@@ -3,7 +3,7 @@
 if (DatabaseEngine = 'sqlite') then
 begin
 
-  with FDQuery1 do
+  with Query1 do
   begin
 
     SQL.Clear;
@@ -27,9 +27,9 @@ begin
     begin
       SQL.Clear;
 
-      // Default API Key for testing: "testing"
-      SQL.Add('insert into api_key values( "testing", current_timestamp, 0, current_timestamp, "2100-01-01", "Testing XData Template Demo Data" );');
-      SQL.Add('insert into api_key values( "{39A411D0-FB62-4F95-8F34-E63839D6E98E}", current_timestamp, 0, current_timestamp, "2100-01-01", "TMS WEB Core Template Demo" );');
+      // Default API Keys for testing - set to expire after three months
+      SQL.Add('insert into api_key values( "testing", Datetime("now"), 0, Datetime("now"), Datetime("now", "+3 months"), "Testing XData Template Demo Data" );');
+      SQL.Add('insert into api_key values( "{39A411D0-FB62-4F95-8F34-E63839D6E98E}", Datetime("now"), 0, Datetime("now"), Datetime("now", "+3 months"), "TMS WEB Core Template Demo" );');
 
       ExecSQL;
     end;

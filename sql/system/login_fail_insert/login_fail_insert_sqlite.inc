@@ -13,7 +13,7 @@ begin
             'values( '+
             '  :LOGINID, '+
             '  :IPADDRESS, '+
-            '  current_timestamp '+
+            '  Datetime("now") '+
             ');'
            );
 

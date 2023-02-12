@@ -8,13 +8,13 @@ begin
 
     SQL.Clear;
     SQL.Add('select '+
-            '  api_key '+
+            '  application, Datetime(valid_until, "localtime") valid_until '+
             'from '+
             '  api_key '+
             'where '+
             '  lower(api_key) = :APIKEY '+
-            '  and (valid_after < current_timestamp) '+
-            '  and (valid_until > current_timestamp);'
+            '  and (valid_after < Datetime("now")) '+
+            '  and (valid_until > Datetime("now"));'
            );
 
   end;

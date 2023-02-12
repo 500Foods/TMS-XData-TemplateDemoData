@@ -14,7 +14,7 @@ begin
             'where '+
             '  (login_id = :LOGINID) '+
             '  and (ip_address = :IPADDRESS) '+
-            '  and (attempted > Datetime("now", "-10 minutes", "localtime"));'
+            '  and (attempted > Datetime("now", "-10 minutes"));'
            );
 
   end;

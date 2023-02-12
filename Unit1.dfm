@@ -40,12 +40,12 @@ object ServerContainer: TServerContainer
     Left = 216
     Top = 128
   end
-  object FDConnection1: TFDConnection
+  object DBConn: TFDConnection
     Left = 344
     Top = 16
   end
-  object FDQuery1: TFDQuery
-    Connection = FDConnection1
+  object Query1: TFDQuery
+    Connection = DBConn
     Left = 344
     Top = 128
   end

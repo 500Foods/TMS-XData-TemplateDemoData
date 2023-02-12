@@ -101,10 +101,9 @@ begin
   Result := TStringStream.Create(ResultJSON.ToString);
 
   // Cleanup
-  TXDataOperationContext.Current.Handler.ManagedObjects.Add(Result);
   ResultJSON.Free;
 
-// These are now part of ResultJSON and get freed when that gets freed
+  // These are now part of ResultJSON and get freed when that gets freed
 // ServerIPArray.Free;
 // ParametersArray.Free;
 
@@ -121,6 +120,7 @@ var
   ElapsedTime: TDateTime;
 
   PersonID: Integer;
+  ApplicationName: String;
   Roles: String;
   EMailAddress: String;
   PasswordHash: String;
@@ -148,6 +148,7 @@ begin
   if Trim(TZ) = '' then raise EXDataHttpUnauthorized.Create('TZ cannot be blank');
 
   // Figure out if we have a valid TZ
+  ValidTimeZone := False;
   try
     ClientTimeZone := TBundledTimeZone.GetTimeZone(TZ);
     ValidTimeZone := True;
@@ -168,48 +169,108 @@ begin
   if not(ValidTimeZone) then raise EXDataHttpUnauthorized.Create('Invalid TZ');
 
   // Setup DB connection and query
-  DBSupport.ConnectQuery(DBConn, Query1);
+  try
+    DBSupport.ConnectQuery(DBConn, Query1);
+  except on E: Exception do
+    begin
+      MainForm.mmInfo.Lines.Add('['+E.Classname+'] '+E.Message);
+      raise EXDataHttpUnauthorized.Create('Internal Error: CQ');
+    end;
+  end;
 
   // Check if we've got a valid API_Key
-  {$Include sql\system\api_key_check\api_key_check.inc}
-  Query1.ParamByName('APIKEY').AsString := LowerCase(API_Key);
-  Query1.Open;
+  try
+    {$Include sql\system\api_key_check\api_key_check.inc}
+    Query1.ParamByName('APIKEY').AsString := LowerCase(API_Key);
+    Query1.Open;
+  except on E: Exception do
+    begin
+      MainForm.mmInfo.Lines.Add('['+E.Classname+'] '+E.Message);
+      raise EXDataHttpUnauthorized.Create('Internal Error: AKC');
+    end;
+  end;
   if Query1.RecordCount = 0 then raise EXDataHttpUnauthorized.Create('API_Key was not validated');
+  ApplicationName := Query1.FieldByName('application').AsString;
+  if not(Query1.FieldByName('valid_until').isNull) and
+     (ExpiresAt > TTimeZone.Local.ToLocalTime(Query1.FieldByName('valid_until').AsDateTime))
+  then ExpiresAt := TTimeZone.Local.ToLocalTime(Query1.FieldByName('valid_until').AsDateTime);
 
   // Check if the IP Address is always allowed
-  {$Include sql\system\ip_allow_check\ip_allow_check.inc}
-  Query1.ParamByName('IPADDRESS').AsString := TXDataOperationContext.Current.Request.RemoteIP;
-  Query1.Open;
-  if Query1.RecordCount = 0 then
-  begin
-    {$Include sql\system\ip_block_check\ip_block_check.inc}
+  try
+    {$Include sql\system\ip_allow_check\ip_allow_check.inc}
     Query1.ParamByName('IPADDRESS').AsString := TXDataOperationContext.Current.Request.RemoteIP;
     Query1.Open;
-    if Query1.RecordCount > 0 then raise EXDataHttpUnauthorized.Create('IP Address has been temporarily blocked')
+    if Query1.RecordCount = 0 then
+    begin
+      try
+        {$Include sql\system\ip_block_check\ip_block_check.inc}
+        Query1.ParamByName('IPADDRESS').AsString := TXDataOperationContext.Current.Request.RemoteIP;
+        Query1.Open;
+        if Query1.RecordCount > 0 then raise EXDataHttpUnauthorized.Create('IP Address has been temporarily blocked')
+      except on E: Exception do
+        begin
+          MainForm.mmInfo.Lines.Add('['+E.Classname+'] '+E.Message);
+          raise EXDataHttpUnauthorized.Create('Internal Error: IBC');
+        end;
+      end;
+    end;
+  except on E: Exception do
+    begin
+      MainForm.mmInfo.Lines.Add('['+E.Classname+'] '+E.Message);
+      raise EXDataHttpUnauthorized.Create('Internal Error: IAC');
+    end;
   end;
 
   // IP Check passed.  Next up: Login attempts.  First we log the attempt.  Then we count them.
-  {$Include sql\system\login_fail_insert\login_fail_insert.inc}
-  Query1.ParamByName('LOGINID').AsString := LowerCase(Login_ID);
-  Query1.ParamByName('IPADDRESS').AsString := TXDataOperationContext.Current.Request.RemoteIP;
-  Query1.Execute;
-  {$Include sql\system\login_fail_check\login_fail_check.inc}
-  Query1.ParamByName('LOGINID').AsString := LowerCase(Login_ID);
-  Query1.ParamByName('IPADDRESS').AsString := TXDataOperationContext.Current.Request.RemoteIP;
-  Query1.Open;
+  try
+    {$Include sql\system\login_fail_insert\login_fail_insert.inc}
+    Query1.ParamByName('LOGINID').AsString := LowerCase(Login_ID);
+    Query1.ParamByName('IPADDRESS').AsString := TXDataOperationContext.Current.Request.RemoteIP;
+    Query1.Execute;
+  except on E: Exception do
+    begin
+      MainForm.mmInfo.Lines.Add('['+E.Classname+'] '+E.Message);
+      raise EXDataHttpUnauthorized.Create('Internal Error: LFI');
+    end;
+  end;
+  try
+    {$Include sql\system\login_fail_check\login_fail_check.inc}
+    Query1.ParamByName('LOGINID').AsString := LowerCase(Login_ID);
+    Query1.ParamByName('IPADDRESS').AsString := TXDataOperationContext.Current.Request.RemoteIP;
+    Query1.Open;
+  except on E: Exception do
+    begin
+      MainForm.mmInfo.Lines.Add('['+E.Classname+'] '+E.Message);
+      raise EXDataHttpUnauthorized.Create('Internal Error: LFC');
+    end;
+  end;
   if Query1.FieldByNAme('attempts').AsInteger >= 5 then
   begin
-    {$Include sql\system\ip_block_insert\ip_block_insert.inc}
-    Query1.ParamByName('IPADDRESS').AsString := TXDataOperationContext.Current.Request.RemoteIP;
-    Query1.ParamByName('REASON').AsString := 'Too many failed login attempts.';
-    Query1.ExecSQL;
+    try
+      {$Include sql\system\ip_block_insert\ip_block_insert.inc}
+      Query1.ParamByName('IPADDRESS').AsString := TXDataOperationContext.Current.Request.RemoteIP;
+      Query1.ParamByName('REASON').AsString := 'Too many failed login attempts.';
+      Query1.ExecSQL;
+    except on E: Exception do
+      begin
+       MainForm.mmInfo.Lines.Add('['+E.Classname+'] '+E.Message);
+        raise EXDataHttpUnauthorized.Create('Internal Error: IBI');
+      end;
+    end;
     raise EXDataHttpUnauthorized.Create('Too many failed login attempts.  Please try again later.')
   end;
 
   // Alright, the login has passed all its initial checks.  Lets see if the Login_ID is known
-  {$Include sql\system\contact_search\contact_search.inc}
-  Query1.ParamByName('LOGINID').AsString := LowerCase(Login_ID);
-  Query1.Open;
+  try
+    {$Include sql\system\contact_search\contact_search.inc}
+    Query1.ParamByName('LOGINID').AsString := LowerCase(Login_ID);
+    Query1.Open;
+  except on E: Exception do
+    begin
+      MainForm.mmInfo.Lines.Add('['+E.Classname+'] '+E.Message);
+      raise EXDataHttpUnauthorized.Create('Internal Error: CS');
+    end;
+  end;
   if Query1.RecordCount = 0
   then raise EXDataHttpUnauthorized.Create('Login not authenticated: invalid login')
   else if Query1.RecordCount > 1
@@ -219,9 +280,16 @@ begin
   PersonID := Query1.FieldByName('person_id').AsInteger;
 
   // Ok, we've got a person, let's see if they've got the required Login role
-  {$Include sql\system\person_role_check\person_role_check.inc}
-  Query1.ParamByName('PERSONID').AsInteger := PersonID;
-  Query1.Open;
+  try
+    {$Include sql\system\person_role_check\person_role_check.inc}
+    Query1.ParamByName('PERSONID').AsInteger := PersonID;
+    Query1.Open;
+  except on E: Exception do
+    begin
+      MainForm.mmInfo.Lines.Add('['+E.Classname+'] '+E.Message);
+      raise EXDataHttpUnauthorized.Create('Internal Error: PRC');
+    end;
+  end;
   if Query1.FieldByName('role_id').AsInteger <> 0 then raise EXDataHttpUnauthorized.Create('Login not authorized');
 
   // Login role is present, so let's make a note of the other roles
@@ -229,25 +297,44 @@ begin
   while not(Query1.EOF) do
   begin
     Roles := Roles + Query1.FieldByName('role_id').AsString;
+
+    // Limit token validity of role expires before token expires
+    if not(Query1.FieldByName('valid_until').isNull) and
+       (ExpiresAt > TTimeZone.Local.ToLocalTIme(Query1.FieldByName('valid_until').AsDateTime))
+    then ExpiresAt := TTimeZone.Local.ToLocalTime(Query1.FieldByName('valid_until').AsDateTime);
+
     Query1.Next;
     if not(Query1.EOF) then Roles := Roles + ',';
   end;
 
   // Get the first available EMail address if possible
   EMailAddress := 'unavailable';
-  {$Include sql\system\contact_email\contact_email.inc}
-  Query1.ParamByName('PERSONID').AsInteger := PersonID;
-  Query1.Open;
-  if Query1.RecordCount > 0
-  then EMailAddress := Query1.FieldByName('value').AsString;
-
+  try
+    {$Include sql\system\contact_email\contact_email.inc}
+    Query1.ParamByName('PERSONID').AsInteger := PersonID;
+    Query1.Open;
+    if Query1.RecordCount > 0
+    then EMailAddress := Query1.FieldByName('value').AsString;
+  except on E: Exception do
+    begin
+      MainForm.mmInfo.Lines.Add('['+E.Classname+'] '+E.Message);
+      raise EXDataHttpUnauthorized.Create('Internal Error: CE');
+    end;
+  end;
 
   // Finally, let's check the actual passowrd.
   PasswordHash := DBSupport.HashThis('XData-Password:'+Trim(Password));
-  {$Include sql\system\person_password_check\person_password_check.inc}
-  Query1.ParamByName('PERSONID').AsInteger := PersonID;
-  Query1.ParamByName('PASSWORDHASH').AsString := PasswordHash;
-  Query1.Open;
+  try
+    {$Include sql\system\person_password_check\person_password_check.inc}
+    Query1.ParamByName('PERSONID').AsInteger := PersonID;
+    Query1.ParamByName('PASSWORDHASH').AsString := PasswordHash;
+    Query1.Open;
+  except on E: Exception do
+    begin
+      MainForm.mmInfo.Lines.Add('['+E.Classname+'] '+E.Message);
+      raise EXDataHttpUnauthorized.Create('Internal Error: PPC');
+    end;
+  end;
   if Query1.RecordCount <> 1 then raise EXDataHttpUnauthorized.Create('Login not authenticated: invalid password');
 
   // Login has been authenticated and authorized.
@@ -260,6 +347,7 @@ begin
     JWT.Claims.SetClaimOfType<string>( 'ver', MainForm.AppVersion );
     JWT.Claims.SetClaimOfType<string>( 'tzn', TZ );
     JWT.Claims.SetClaimOfType<integer>('usr', PersonID );
+    JWT.Claims.SetClaimOfType<string> ('app', ApplicationName );
     JWT.Claims.SetClaimOfType<string>( 'rol', Roles );
     JWT.Claims.SetClaimOfType<string>( 'eml', EMailAddress );
     JWT.Claims.SetClaimOfType<string>( 'fnm', Query1.FieldByName('first_name').AsString );
@@ -267,8 +355,8 @@ begin
     JWT.Claims.SetClaimOfType<string>( 'lnm', Query1.FieldByName('last_name').AsString );
     JWT.Claims.SetClaimOfType<string>( 'anm', Query1.FieldByName('account_name').AsString );
     JWT.Claims.SetClaimOfType<string>( 'net', TXDataOperationContext.Current.Request.RemoteIP );
-    JWT.Claims.SetClaimOfType<string>( 'iat', FormatDateTime('yyyy-mm-dd hh:nn:ss.zzz', IssuedAt));
-    JWT.Claims.SetClaimOfType<string>( 'eat', FormatDateTime('yyyy-mm-dd hh:nn:ss.zzz', ExpiresAt));
+    JWT.Claims.SetClaimOfType<string>( 'iat', FormatDateTime('yyyy-mm-dd hh:nn:ss.zzz', IssuedAt)+' '+MainForm.AppTimeZone);
+    JWT.Claims.SetClaimOfType<string>( 'eat', FormatDateTime('yyyy-mm-dd hh:nn:ss.zzz', ExpiresAt)+' '+MainForm.AppTimeZone);
     JWT.Claims.Expiration := ExpiresAt;
 
     // Generate the actual JWT
@@ -279,37 +367,76 @@ begin
   end;
 
   // Add the JWT to a table that we'll use to help with expring tokens
-  {$Include sql\system\token_insert\token_insert.inc}
-  Query1.ParamByName('TOKENHASH').AsString := DBSupport.HashThis(Result);
-  Query1.ParamByName('VALIDAFTER').AsDateTime := IssuedAt;
-  Query1.ParamByName('VALIDUNTIL').AsDateTime := ExpiresAt;
-  Query1.ParamByName('PERSONID').AsInteger := PersonID;
-  Query1.ExecSQL;
+  try
+    {$Include sql\system\token_insert\token_insert.inc}
+    Query1.ParamByName('TOKENHASH').AsString := DBSupport.HashThis(Result);
+    Query1.ParamByName('PERSONID').AsInteger := PersonID;
+    Query1.ParamByName('VALIDAFTER').AsDateTime := TTimeZone.local.ToUniversalTime(IssuedAt);
+    Query1.ParamByName('VALIDUNTIL').AsDateTime := TTimeZone.local.ToUniversalTime(ExpiresAt);
+    Query1.ParamByName('APPLICATION').AsString := ApplicationName;
+    Query1.ExecSQL;
+  except on E: Exception do
+    begin
+      MainForm.mmInfo.Lines.Add('['+E.Classname+'] '+E.Message);
+      raise EXDataHttpUnauthorized.Create('Internal Error: TI');
+    end;
+  end;
 
   // Keep track of login history
-  {$Include sql\system\login_history_insert\login_history_insert.inc}
-  Query1.ParamByName('LOGGEDIN').AsDateTime := IssuedAt;
-  Query1.ParamByName('IPADDRESS').AsString := TXDataOperationContext.Current.Request.RemoteIP;
-  Query1.ParamByName('PERSONID').AsInteger := PersonID;
-  Query1.ExecSQL;
+  try
+    {$Include sql\system\login_history_insert\login_history_insert.inc}
+    Query1.ParamByName('LOGGEDIN').AsDateTime := TTimeZone.local.ToUniversalTime(IssuedAt);
+    Query1.ParamByName('IPADDRESS').AsString := TXDataOperationContext.Current.Request.RemoteIP;
+    Query1.ParamByName('PERSONID').AsInteger := PersonID;
+    Query1.ParamByName('APPLICATION').AsString := ApplicationName;
+    Query1.ExecSQL;
+  except on E: Exception do
+    begin
+      MainForm.mmInfo.Lines.Add('['+E.Classname+'] '+E.Message);
+      raise EXDataHttpUnauthorized.Create('Internal Error: LHI');
+    end;
+  end;
 
   // Cleanup after login
-  {$Include sql\system\login_cleanup\login_cleanup.inc}
-  Query1.ParamByName('IPADDRESS').AsString := TXDataOperationContext.Current.Request.RemoteIP;
-  Query1.ParamByName('LOGINID').AsString := LowerCase(Login_ID);
-  Query1.ExecSQL;
+  try
+    {$Include sql\system\login_cleanup\login_cleanup.inc}
+    Query1.ParamByName('IPADDRESS').AsString := TXDataOperationContext.Current.Request.RemoteIP;
+    Query1.ParamByName('LOGINID').AsString := LowerCase(Login_ID);
+    Query1.ExecSQL;
+  except on E: Exception do
+    begin
+      MainForm.mmInfo.Lines.Add('['+E.Classname+'] '+E.Message);
+      raise EXDataHttpUnauthorized.Create('Internal Error: LCI');
+    end;
+  end;
 
   // Keep track of endpoint history
-  {$Include sql\system\endpoint_history_insert\endpoint_history_insert.inc}
-  Query1.ParamByName('ENDPOINT').AsString := 'SystemService.Login';
-  Query1.ParamByName('ACCESSED').AsDateTime := ElapsedTime;
-  Query1.ParamByName('IPADDRESS').AsString := TXDataOperationContext.Current.Request.RemoteIP;
-  Query1.ParamByName('EXECUTIONMS').AsInteger := MillisecondsBetween(Now,ElapsedTime);
-  Query1.ParamByName('DETAILS').AsString := '['+Login_ID+'] [Passowrd] [API_Key] ['+TZ+']';
-  Query1.ExecSQL;
+  try
+    {$Include sql\system\endpoint_history_insert\endpoint_history_insert.inc}
+    Query1.ParamByName('ENDPOINT').AsString := 'SystemService.Login';
+    Query1.ParamByName('ACCESSED').AsDateTime := TTimeZone.local.ToUniversalTime(ElapsedTime);
+    Query1.ParamByName('IPADDRESS').AsString := TXDataOperationContext.Current.Request.RemoteIP;
+    Query1.ParamByName('APPLICATION').AsString := ApplicationName;
+    Query1.ParamByName('EXECUTIONMS').AsInteger := MillisecondsBetween(Now,ElapsedTime);
+    Query1.ParamByName('DETAILS').AsString := '['+Login_ID+'] [Passowrd] [API_Key] ['+TZ+']';
+    Query1.ExecSQL;
+  except on E: Exception do
+    begin
+      MainForm.mmInfo.Lines.Add('['+E.Classname+'] '+E.Message);
+      raise EXDataHttpUnauthorized.Create('Internal Error: EHI');
+    end;
+  end;
+
 
   // All Done
-  DBSupport.CleanupQuery(DBConn, Query1);
+  try  
+    DBSupport.DisconnectQuery(DBConn, Query1);
+  except on E: Exception do
+    begin
+      MainForm.mmInfo.Lines.Add('['+E.Classname+'] '+E.Message);
+      raise EXDataHttpUnauthorized.Create('Internal Error: DQ');
+    end;
+  end;
 
 end;
 

@@ -3,7 +3,7 @@
 if (DatabaseEngine = 'sqlite') then
 begin
 
-  with FDQuery1 do
+  with Query1 do
   begin
 
     SQL.Clear;
@@ -28,7 +28,7 @@ begin
       SQL.Clear;
 
       // Just as an example
-      SQL.Add('insert into ip_block values( "0.0.0.0", current_timestamp, 0, current_timestamp, "2100-01-01", "Not a valid IP address - Permanent Ban" );');
+      SQL.Add('insert into ip_block values( "0.0.0.0", Datetime("now"), 0, Datetime("now"), Datetime("now", "+100 years"), "Not a valid IP address - Permanent Ban" );');
 
       ExecSQL;
     end;

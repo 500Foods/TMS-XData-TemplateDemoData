@@ -9,12 +9,13 @@ begin
     SQL.Clear;
     SQL.Add('insert into '+
             '  endpoint_history '+
-            '    (endpoint, accessed, execution_ms, ip_address, details) '+
+            '    (endpoint, accessed, execution_ms, ip_address, application, details) '+
             'values( '+
             '  :ENDPOINT, '+
             '  :ACCESSED, '+
             '  :EXECUTIONMS, '+
             '  :IPADDRESS, '+
+            '  :APPLICATION, '+
             '  :DETAILS '+
             ');'
            );

@@ -3,7 +3,7 @@
 if (DatabaseEngine = 'sqlite') then
 begin
 
-  with FDQuery1 do
+  with Query1 do
   begin
 
     SQL.Clear;
@@ -28,8 +28,8 @@ begin
       SQL.Clear;
 
       // Grant System Installer the role of Login, Administrator
-      SQL.Add('insert into person_role values( 0, 0, current_timestamp, "2100-01-01", current_timestamp, 0);');
-      SQL.Add('insert into person_role values( 0, 1, current_timestamp, "2100-01-01", current_timestamp, 0);');
+      SQL.Add('insert into person_role values( 0, 0, Datetime("now"), Datetime("now", "+100 years"), Datetime("now"), 0);');
+      SQL.Add('insert into person_role values( 0, 1, Datetime("now"), Datetime("now", "+100 years"), Datetime("now"), 0);');
 
       ExecSQL;
     end;

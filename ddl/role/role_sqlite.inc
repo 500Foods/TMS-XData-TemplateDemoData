@@ -3,7 +3,7 @@
 if (DatabaseEngine = 'sqlite') then
 begin
 
-  with FDQuery1 do
+  with Query1 do
   begin
 
     SQL.Clear;
@@ -28,11 +28,11 @@ begin
       SQL.Clear;
 
       // Default roles
-      SQL.Add('insert into role values( 0, current_timestamp, 0, "Login",         "<i class=""fa-solid fa-right-to-braket""></i>" );');
-      SQL.Add('insert into role values( 1, current_timestamp, 0, "Administrator", "<i class=""fa-solid fa-user-gear""></i>"       );');
-      SQL.Add('insert into role values( 2, current_timestamp, 0, "Manager",       "<i class=""fa-solid fa-user-clock""></i>"      );');
-      SQL.Add('insert into role values( 3, current_timestamp, 0, "Supervisor",    "<i class=""fa-solid fa-user-tag""></i>"        );');
-      SQL.Add('insert into role values( 4, current_timestamp, 0, "Worker",        "<i class=""fa-solid fa-user""></i>"            );');
+      SQL.Add('insert into role values( 0, Datetime("now"), 0, "Login",         "<i class=""fa-solid fa-right-to-braket""></i>" );');
+      SQL.Add('insert into role values( 1, Datetime("now"), 0, "Administrator", "<i class=""fa-solid fa-user-gear""></i>"       );');
+      SQL.Add('insert into role values( 2, Datetime("now"), 0, "Manager",       "<i class=""fa-solid fa-user-clock""></i>"      );');
+      SQL.Add('insert into role values( 3, Datetime("now"), 0, "Supervisor",    "<i class=""fa-solid fa-user-tag""></i>"        );');
+      SQL.Add('insert into role values( 4, Datetime("now"), 0, "Worker",        "<i class=""fa-solid fa-user""></i>"            );');
 
       ExecSQL;
     end;
