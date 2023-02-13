@@ -38,13 +38,12 @@ type
     ///    Login to XData Server
     ///  </summary>
     ///  <remarks>
-    ///    If authentication is successful, a JWT will be returned with the appropriate
-    ///    authorization information.
+    ///    If login is successful, a JWT will be returned.
     ///  </remarks>
     ///  <param name="Login_ID">
-    ///    Login_ID can be either the account_name, first_name+last_name, or any of the
-    ///    contact entries that have been marked as login_ok, which would typically be
-    ///    just the email address but could also include phone numbers or other values.
+    ///    Login_ID can be any of the contact entries that have been marked as login_ok,
+    ///    which would typically be just the email address but could also include phone
+    ///    numbers or other values.
     ///  </param>
     ///  <param name="Password">
     ///    Password corresponding to the username.
