@@ -5,7 +5,14 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
   System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs,
-  Vcl.StdCtrls, Unit1, System.IOUtils, System.DateUtils, IdStack, IdGlobal, psAPI, WinAPi.ShellAPI;
+  Vcl.StdCtrls, Unit1, System.IOUtils, System.DateUtils, IdStack, IdGlobal, psAPI, WinAPi.ShellAPI,
+  FireDAC.Stan.Intf, FireDAC.Stan.Option, FireDAC.Stan.Error,
+  FireDAC.UI.Intf, FireDAC.Phys.Intf, FireDAC.Stan.Def, FireDAC.Stan.Pool,
+  FireDAC.Stan.Async, FireDAC.Phys, FireDAC.VCLUI.Wait,
+  FireDAC.Stan.ExprFuncs, FireDAC.Phys.SQLiteDef, FireDAC.Stan.Param,
+  FireDAC.DatS, FireDAC.DApt.Intf, FireDAC.DApt, Data.DB,
+  FireDAC.Comp.DataSet, FireDAC.Comp.Client, FireDAC.Phys.SQLite,
+  Vcl.ExtCtrls;
 
 type
   TMainForm = class(TForm)
@@ -13,6 +20,10 @@ type
     btStart: TButton;
     btStop: TButton;
     btSwagger: TButton;
+    DBConn: TFDConnection;
+    FDPhysSQLiteDriverLink1: TFDPhysSQLiteDriverLink;
+    Query1: TFDQuery;
+    tmrStart: TTimer;
     procedure btStartClick(ASender: TObject);
     procedure btStopClick(ASender: TObject);
     procedure FormCreate(ASender: TObject);
@@ -28,6 +39,7 @@ type
     procedure GetIPAddresses(List: TStringList);
     function GetMemoryUsage: NativeUInt;
     procedure btSwaggerClick(Sender: TObject);
+    procedure tmrStartTimer(Sender: TObject);
   public
     AppName: String;
     AppVersion: String;
@@ -39,6 +51,14 @@ type
     AppTimeZone: String;
     AppTimeZoneOffset: Integer;
     IPAddresses: TStringList;
+
+    DatabaseName: String;
+    DatabaseAlias: String;
+    DatabaseEngine: String;
+    DatabaseUsername: String;
+    DatabasePassword: String;
+    DatabaseConfig: String;
+
   strict private
     procedure UpdateGUI;
   end;
@@ -104,22 +124,7 @@ begin
   IPAddresses.QuoteChar := ' ';
   GetIPAddresses(IPAddresses);
 
-  UpdateGUI;
-
-  // Display System Values
-  mmInfo.Lines.Add('');
-  mmInfo.Lines.Add('App Name: '+AppName);
-  mmInfo.Lines.Add('App Version: '+AppVersion);
-  mmInfo.Lines.Add('App Release: '+FormatDateTime('yyyy-mmm-dd (ddd) hh:nn:ss', AppRelease));
-  mmInfo.Lines.Add('App Release UTC: '+FormatDateTime('yyyy-mm-dd hh:nn:ss.zzz', AppReleaseUTC));
-  mmInfo.Lines.Add('App File Name: '+AppFileName);
-  mmInfo.Lines.Add('App File Size: '+Format('%.1n',[AppFileSize / 1024 / 1024])+' MB');
-  mmInfo.Lines.Add('App TimeZone: '+AppTimeZone);
-  mmInfo.Lines.Add('App TimeZone Offset: '+IntToStr(AppTimeZoneOffset)+'m');
-  mmInfo.Lines.Add('App Parameters: '+AppParameters.DelimitedText);
-  mmInfo.Lines.Add('Server IP Addresses: '+IPAddresses.DelimitedText);
-  mmInfo.Lines.Add('App Memory Usage: '+Format('%.1n',[GetMemoryUsage / 1024 / 1024])+' MB');
-  mmInfo.Lines.Add('Database: '+ServerContainer.DatabaseName);
+  tmrStart.Enabled := True;
 end;
 
 function TMainForm.GetAppFileName: String;
@@ -254,6 +259,125 @@ begin
   else mmInfo.Lines.add('ERROR: WorkingSetSize not available');
 end;
 
+
+procedure TMainForm.tmrStartTimer(Sender: TObject);
+var
+  i: Integer;
+begin
+
+  tmrStart.Enabled := False;
+
+  // FDConnection component dropped on form - DBConn
+  // FDPhysSQLiteDriverLink component droppoed on form
+  // FDQuery component dropped on form - Query1
+  // DatabaseName is a Form Variable
+  // DatabaseEngine is a Form Variable
+  // DatabaseUsername is a Form Variable
+  // DatabasePassword is a Form Variable
+
+  mmInfo.Lines.Add('Initializing Database...');
+
+  DatabaseEngine := 'sqlite';
+  DatabaseName := 'DemoData.sqlite';
+  DatabaseAlias := 'DemoData';
+  DatabaseUsername := 'dbuser';
+  DatabasePassword := 'dbpass';
+  DatabaseConfig := '';
+
+  i := 1;
+  while i <= ParamCount do
+  begin
+    if Pos('DBNAME=',Uppercase(ParamStr(i))) = 1
+    then DatabaseName := Copy(ParamStr(i),8,length(ParamStr(i)));
+
+    if Pos('DBALIAS=',Uppercase(ParamStr(i))) = 1
+    then DatabaseAlias := Copy(ParamStr(i),8,length(ParamStr(i)));
+
+    if Pos('DBENGINE=',Uppercase(ParamStr(i))) = 1
+    then DatabaseEngine := Lowercase(Copy(ParamStr(i),10,length(ParamStr(i))));
+
+    if Pos('DBUSER=',Uppercase(ParamStr(i))) = 1
+    then DatabaseUsername := Copy(ParamStr(i),8,length(ParamStr(i)));
+
+    if Pos('DBPASS=',Uppercase(ParamStr(i))) = 1
+    then DatabasePassword := Copy(ParamStr(i),8,length(ParamStr(i)));
+
+    if Pos('DBCONFIG=',Uppercase(ParamStr(i))) = 1
+    then DatabaseConfig := Copy(ParamStr(i),8,length(ParamStr(i)));
+
+    i := i + 1;
+  end;
+
+  FDManager.Open;
+  DBConn.Params.Clear;
+
+  if (DatabaseEngine = 'sqlite') then
+  begin
+    // This creates the database if it doesn't already exist
+    DBConn.Params.DriverID := 'SQLite';
+    DBConn.Params.Database := DatabaseName;
+    DBConn.Params.Add('DateTimeFormat=String');
+    DBConn.Params.Add('Synchronous=Full');
+    DBConn.Params.Add('LockingMode=Normal');
+    DBConn.Params.Add('SharedCache=False');
+    DBConn.Params.Add('UpdateOptions.LockWait=True');
+    DBConn.Params.Add('BusyTimeout=10000');
+    DBConn.Params.Add('SQLiteAdvanced=page_size=4096');
+    // Extras
+    DBConn.FormatOptions.StrsEmpty2Null := True;
+    with DBConn.FormatOptions do
+    begin
+      StrsEmpty2Null := true;
+      OwnMapRules := True;
+      with MapRules.Add do begin
+        SourceDataType := dtWideMemo;
+        TargetDataType := dtWideString;
+      end;
+    end;
+  end;
+
+  DBConn.Open;
+  Query1.Connection := DBConn;
+  mmInfo.Lines.Add('...['+DatabaseEngine+'] '+DatabaseName);
+
+  // Create and populate tables
+  {$Include ddl\person\person.inc}
+  {$Include ddl\role\role.inc}
+  {$Include ddl\person_role\person_role.inc}
+  {$Include ddl\api_key\api_key.inc}
+  {$Include ddl\contact\contact.inc}
+  {$Include ddl\endpoint_history\endpoint_history.inc}
+  {$Include ddl\ip_allow\ip_allow.inc}
+  {$Include ddl\ip_block\ip_block.inc}
+  {$Include ddl\list\list.inc}
+  {$Include ddl\login_fail\login_fail.inc}
+  {$Include ddl\login_history\login_history.inc}
+  {$Include ddl\token\token.inc}
+
+  mmInfo.Lines.Add('Done.');
+  mmInfo.Lines.Add('');
+
+  UpdateGUI;
+
+  // Display System Values
+  mmInfo.Lines.Add('');
+  mmInfo.Lines.Add('App Name: '+AppName);
+  mmInfo.Lines.Add('...Version: '+AppVersion);
+  mmInfo.Lines.Add('...Release: '+FormatDateTime('yyyy-mmm-dd (ddd) hh:nn:ss', AppRelease));
+  mmInfo.Lines.Add('...Release UTC: '+FormatDateTime('yyyy-mm-dd hh:nn:ss.zzz', AppReleaseUTC));
+  mmInfo.Lines.Add('...Memory Usage: '+Format('%.1n',[GetMemoryUsage / 1024 / 1024])+' MB');
+  mmInfo.Lines.Add('...File Name: '+AppFileName);
+  mmInfo.Lines.Add('...File Size: '+Format('%.1n',[AppFileSize / 1024 / 1024])+' MB');
+  mmInfo.Lines.Add('...TimeZone: '+AppTimeZone);
+  mmInfo.Lines.Add('...TimeZone Offset: '+IntToStr(AppTimeZoneOffset)+'m');
+  mmInfo.Lines.Add('...Parameters:');
+  mmInfo.Lines.AddStrings(AppParameters);
+  mmInfo.Lines.Add('...IP Addresses:');
+  mmInfo.Lines.AddStrings(IPAddresses);
+  mmInfo.Lines.Add('Ready.');
+  mmInfo.Lines.Add('');
+
+end;
 
 procedure TMainForm.UpdateGUI;
 const

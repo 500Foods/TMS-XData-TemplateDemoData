@@ -2,7 +2,7 @@ object MainForm: TMainForm
   Left = 0
   Top = 0
   Caption = 'XData Template Demo Data'
-  ClientHeight = 346
+  ClientHeight = 502
   ClientWidth = 743
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -14,18 +14,20 @@ object MainForm: TMainForm
   OnCreate = FormCreate
   DesignSize = (
     743
-    346)
+    502)
   PixelsPerInch = 96
   TextHeight = 13
   object mmInfo: TMemo
     Left = 8
     Top = 40
     Width = 727
-    Height = 298
+    Height = 454
     Anchors = [akLeft, akTop, akRight, akBottom]
+    DoubleBuffered = True
+    ParentDoubleBuffered = False
     ReadOnly = True
+    ScrollBars = ssVertical
     TabOrder = 0
-    ExplicitHeight = 194
   end
   object btStart: TButton
     Left = 8
@@ -53,5 +55,24 @@ object MainForm: TMainForm
     Caption = 'Swagger'
     TabOrder = 3
     OnClick = btSwaggerClick
+  end
+  object DBConn: TFDConnection
+    Left = 520
+    Top = 48
+  end
+  object FDPhysSQLiteDriverLink1: TFDPhysSQLiteDriverLink
+    Left = 520
+    Top = 160
+  end
+  object Query1: TFDQuery
+    Connection = DBConn
+    Left = 520
+    Top = 104
+  end
+  object tmrStart: TTimer
+    Enabled = False
+    OnTimer = tmrStartTimer
+    Left = 520
+    Top = 208
   end
 end

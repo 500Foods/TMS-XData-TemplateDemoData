@@ -1,6 +1,6 @@
 // [query] contact_search
 
-if (ServerContainer.DatabaseEngine = 'sqlite') then
+if (DatabaseEngine = 'sqlite') then
 begin
 
   with Query1 do

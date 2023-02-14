@@ -1,6 +1,6 @@
 // [query] directory
 
-if (ServerContainer.DatabaseEngine = 'sqlite') then
+if (MainForm.DatabaseEngine = 'sqlite') then
 begin
 
   with Query1 do

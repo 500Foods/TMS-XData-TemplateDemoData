@@ -15,6 +15,8 @@ begin
             '  execution_ms               integer     NOT NULL, '+
             '  ip_address                 text        NOT NULL, '+
             '  application                text        NOT NULL, '+
+            '  database_name              text        NOT NULL, '+
+            '  database_engine            text        NOT NULL, '+
             '  details                    text                  '+
             ');'
            );

@@ -1,6 +1,6 @@
 // [query] ip_block_check
 
-if (ServerContainer.DatabaseEngine = 'sqlite') then
+if (DatabaseEngine = 'sqlite') then
 begin
 
   with Query1 do

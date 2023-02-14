@@ -40,17 +40,4 @@ object ServerContainer: TServerContainer
     Left = 216
     Top = 128
   end
-  object DBConn: TFDConnection
-    Left = 344
-    Top = 16
-  end
-  object Query1: TFDQuery
-    Connection = DBConn
-    Left = 344
-    Top = 128
-  end
-  object FDPhysSQLiteDriverLink1: TFDPhysSQLiteDriverLink
-    Left = 344
-    Top = 72
-  end
 end

@@ -116,6 +116,8 @@ function TSystemService.Login(Login_ID, Password, API_Key, TZ: String): TStream;
 var
   DBConn: TFDConnection;
   Query1: TFDQuery;
+  DatabaseEngine: String;
+  DatabaseName: String;
   ClientTimeZone: TBundledTimeZone;
   ValidTimeZone: Boolean;
   ElapsedTime: TDateTime;
@@ -169,8 +171,10 @@ begin
   if not(ValidTimeZone) then raise EXDataHttpUnauthorized.Create('Invalid TZ');
 
   // Setup DB connection and query
+  DatabaseName := MainForm.DatabaseName;
+  DatabaseEngine := MainForm.DatabaseEngine;
   try
-    DBSupport.ConnectQuery(DBConn, Query1);
+    DBSupport.ConnectQuery(DBConn, Query1, DatabaseName, DatabaseEngine);
   except on E: Exception do
     begin
       MainForm.mmInfo.Lines.Add('['+E.Classname+'] '+E.Message);
@@ -347,7 +351,9 @@ begin
     JWT.Claims.SetClaimOfType<string>( 'ver', MainForm.AppVersion );
     JWT.Claims.SetClaimOfType<string>( 'tzn', TZ );
     JWT.Claims.SetClaimOfType<integer>('usr', PersonID );
-    JWT.Claims.SetClaimOfType<string> ('app', ApplicationName );
+    JWT.Claims.SetClaimOfType<string>( 'app', ApplicationName );
+    JWT.Claims.SetClaimOfType<string>( 'dbn', DatabaseName );
+    JWT.Claims.SetClaimOfType<string>( 'dbe', DatabaseEngine );
     JWT.Claims.SetClaimOfType<string>( 'rol', Roles );
     JWT.Claims.SetClaimOfType<string>( 'eml', EMailAddress );
     JWT.Claims.SetClaimOfType<string>( 'fnm', Query1.FieldByName('first_name').AsString );
@@ -419,6 +425,8 @@ begin
     Query1.ParamByName('ACCESSED').AsDateTime := TTimeZone.local.ToUniversalTime(ElapsedTime);
     Query1.ParamByName('IPADDRESS').AsString := TXDataOperationContext.Current.Request.RemoteIP;
     Query1.ParamByName('APPLICATION').AsString := ApplicationName;
+    Query1.ParamByName('DATABASENAME').AsString := DatabaseName;
+    Query1.ParamByName('DATABASEENGINE').AsString := DatabaseEngine;
     Query1.ParamByName('EXECUTIONMS').AsInteger := MillisecondsBetween(Now,ElapsedTime);
     Query1.ParamByName('DETAILS').AsString := '['+Login_ID+'] [Passowrd] [API_Key] ['+TZ+']';
     Query1.ExecSQL;
