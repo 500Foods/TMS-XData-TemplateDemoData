@@ -9,7 +9,9 @@ uses
   SystemServiceImplementation in 'SystemServiceImplementation.pas',
   TZDB in 'TZDB.pas',
   PersonService in 'PersonService.pas',
-  PersonServiceImplementation in 'PersonServiceImplementation.pas';
+  PersonServiceImplementation in 'PersonServiceImplementation.pas',
+  DashboardService in 'DashboardService.pas',
+  DashboardServiceImplementation in 'DashboardServiceImplementation.pas';
 
 {$R *.res}
 

@@ -31,6 +31,8 @@ begin
       // list_id = 0 contains the names of the lists
       SQL.Add('insert into list values( 0, 0, Datetime("now"), 0, 0, "Lists", "");');
       SQL.Add('insert into list values( 0, 1, Datetime("now"), 0, 1, "Contact Types", "");');
+      SQL.Add('insert into list values( 0, 2, Datetime("now"), 0, 2, "Organization Info", "");');
+      SQL.Add('insert into list values( 0, 3, Datetime("now"), 0, 2, "Photo Types", "");');
 
 
       // Contact Types
@@ -46,6 +48,16 @@ begin
       SQL.Add('insert into list values( 1,  9, Datetime("now"), 0,  9, "Instagram",          "<i class=""fa-brands fa-instagram""></i>");');
       SQL.Add('insert into list values( 1, 10, Datetime("now"), 0,  10, "Work Address",      "<i class=""fa-solid fa-address-book""></i>");');
       SQL.Add('insert into list values( 1, 11, Datetime("now"), 0,  11, "Home Address",      "<i class=""fa-regular fa-address-book""></i>");');
+
+      // Organization Info
+      SQL.Add('insert into list values( 2,  0, Datetime("now"), 0,  0, "TMS WEB Core/XData Template", "Organization Name");');
+      SQL.Add('insert into list values( 2,  1, Datetime("now"), 0,  1, "Template", "Organization Short Name");');
+      SQL.Add('insert into list values( 2,  2, Datetime("now"), 0,  2, "TMS WEB Core and More", "Organization Slogan");');
+      SQL.Add('insert into list values( 2,  3, Datetime("now"), 0,  3, "Copyright (c) 2023", "Copyright Notice");');
+
+      // Photo Types
+      SQL.Add('insert into list values( 3,  0, Datetime("now"), 0,  0, "Photo (Large)", "<i class=""fa-solid fa-user""></i>");');
+      SQL.Add('insert into list values( 3,  1, Datetime("now"), 1,  0, "Photo (Thumbnail)", "<i class=""fa-solid fa-user""></i>");');
 
       ExecSQL;
     end;

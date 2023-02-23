@@ -37,6 +37,7 @@ type
     procedure DisconnectQuery(var conn: TFDConnection; var qry: TFDQuery);
     function HashThis(InputText: String):String;
     procedure Export(Format: String; QueryResult: TFDQuery; var OutputStream: TStream);
+    function QueryToJSON(QueryResult: TFDQuery): String;
   end;
 
 var
@@ -60,6 +61,32 @@ begin
   SHA2.Unicode:= noUni;
   Result := LowerCase(SHA2.Hash(InputText));
   SHA2.Free;
+end;
+
+function TDBSupport.QueryToJSON(QueryResult: TFDQuery): String;
+var
+  bm: TFDBatchMove;
+  bw: TFDBatchMoveJSONWriter;
+  br: TFDBatchMoveDataSetReader;
+  os: TMemoryStream;
+begin
+  os := TMemoryStream.Create;
+  bm := TFDBatchMove.Create(nil);
+  bw := TFDBatchMoveJSONWriter.Create(nil);
+  br := TFDBatchMoveDataSetReader.Create(nil);
+  try
+    br.Dataset := QueryResult;
+    bw.Stream := os;
+    bm.Reader := br;
+    bm.Writer := bw;
+    bm.Execute;
+    SetString(Result, PAnsiChar(os.Memory), os.Size );
+  finally
+    br.Free;
+    bw.Free;
+    bm.Free;
+    os.Free;
+  end;
 end;
 
 procedure TDBSupport.Export(Format: String; QueryResult: TFDQuery;  var OutputStream: TStream);

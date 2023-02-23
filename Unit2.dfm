@@ -57,6 +57,7 @@ object MainForm: TMainForm
     OnClick = btSwaggerClick
   end
   object DBConn: TFDConnection
+    FormatOptions.AssignedValues = [fvMaxStringSize]
     Left = 520
     Top = 48
   end

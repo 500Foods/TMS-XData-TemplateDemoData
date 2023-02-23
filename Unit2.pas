@@ -263,9 +263,11 @@ end;
 procedure TMainForm.tmrStartTimer(Sender: TObject);
 var
   i: Integer;
+  ImageFile: TStringList;
 begin
 
   tmrStart.Enabled := False;
+  ImageFile := TStringList.Create;
 
   // FDConnection component dropped on form - DBConn
   // FDPhysSQLiteDriverLink component droppoed on form
@@ -324,11 +326,10 @@ begin
     DBConn.Params.Add('BusyTimeout=10000');
     DBConn.Params.Add('SQLiteAdvanced=page_size=4096');
     // Extras
-    DBConn.FormatOptions.StrsEmpty2Null := True;
     with DBConn.FormatOptions do
     begin
-      StrsEmpty2Null := true;
       OwnMapRules := True;
+      StrsEmpty2Null := True;
       with MapRules.Add do begin
         SourceDataType := dtWideMemo;
         TargetDataType := dtWideString;
@@ -353,6 +354,7 @@ begin
   {$Include ddl\login_fail\login_fail.inc}
   {$Include ddl\login_history\login_history.inc}
   {$Include ddl\token\token.inc}
+  {$Include ddl\photo\photo.inc}
 
   mmInfo.Lines.Add('Done.');
   mmInfo.Lines.Add('');
@@ -377,6 +379,7 @@ begin
   mmInfo.Lines.Add('Ready.');
   mmInfo.Lines.Add('');
 
+  ImageFile.Free;
 end;
 
 procedure TMainForm.UpdateGUI;
