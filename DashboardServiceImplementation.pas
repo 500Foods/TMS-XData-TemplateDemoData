@@ -135,13 +135,11 @@ begin
   end;
   ResultJSON.AddPair('Photo', String(Query1.FieldByName('photo_datauri').AsString));
 
-
   // Not sure if there is another version of this that is more direct?
   Result := TStringStream.Create(ResultJSON.ToString);
 
   // Cleanup
   ResultJSON.Free;
-
 
   // Keep track of endpoint history
   try
@@ -161,7 +159,6 @@ begin
       raise EXDataHttpUnauthorized.Create('Internal Error: EHI');
     end;
   end;
-
 
   // All Done
   try
