@@ -198,13 +198,6 @@ begin
     end;
   end
 
-  else if ContentFormat = 'FIREDAC' then
-  begin
-    ContentType := 'application/json';
-    OutputStream := TMemoryStream.Create;
-    QueryResult.SaveToStream(OutputStream, sfJSON);
-  end
-
   else // if ContentFormat = 'JSON' then
   begin
     ContentType := 'application/json';
