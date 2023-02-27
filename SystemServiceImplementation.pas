@@ -177,6 +177,7 @@ begin
     DBSupport.ConnectQuery(DBConn, Query1, DatabaseName, DatabaseEngine);
   except on E: Exception do
     begin
+      DBSupport.DisconnectQuery(DBConn, Query1);
       MainForm.mmInfo.Lines.Add('['+E.Classname+'] '+E.Message);
       raise EXDataHttpUnauthorized.Create('Internal Error: CQ');
     end;
@@ -189,11 +190,16 @@ begin
     Query1.Open;
   except on E: Exception do
     begin
+      DBSupport.DisconnectQuery(DBConn, Query1);
       MainForm.mmInfo.Lines.Add('['+E.Classname+'] '+E.Message);
       raise EXDataHttpUnauthorized.Create('Internal Error: AKC');
     end;
   end;
-  if Query1.RecordCount = 0 then raise EXDataHttpUnauthorized.Create('API_Key was not validated');
+  if Query1.RecordCount = 0 then
+  begin
+    DBSupport.DisconnectQuery(DBConn, Query1);
+    raise EXDataHttpUnauthorized.Create('API_Key was not validated');
+  end;
   ApplicationName := Query1.FieldByName('application').AsString;
   if not(Query1.FieldByName('valid_until').isNull) and
      (ExpiresAt > TTimeZone.Local.ToLocalTime(Query1.FieldByName('valid_until').AsDateTime))
@@ -213,6 +219,7 @@ begin
         if Query1.RecordCount > 0 then raise EXDataHttpUnauthorized.Create('IP Address has been temporarily blocked')
       except on E: Exception do
         begin
+    DBSupport.DisconnectQuery(DBConn, Query1);
           MainForm.mmInfo.Lines.Add('['+E.Classname+'] '+E.Message);
           raise EXDataHttpUnauthorized.Create('Internal Error: IBC');
         end;
@@ -220,6 +227,7 @@ begin
     end;
   except on E: Exception do
     begin
+      DBSupport.DisconnectQuery(DBConn, Query1);
       MainForm.mmInfo.Lines.Add('['+E.Classname+'] '+E.Message);
       raise EXDataHttpUnauthorized.Create('Internal Error: IAC');
     end;
@@ -233,6 +241,7 @@ begin
     Query1.Execute;
   except on E: Exception do
     begin
+      DBSupport.DisconnectQuery(DBConn, Query1);
       MainForm.mmInfo.Lines.Add('['+E.Classname+'] '+E.Message);
       raise EXDataHttpUnauthorized.Create('Internal Error: LFI');
     end;
@@ -244,6 +253,7 @@ begin
     Query1.Open;
   except on E: Exception do
     begin
+      DBSupport.DisconnectQuery(DBConn, Query1);
       MainForm.mmInfo.Lines.Add('['+E.Classname+'] '+E.Message);
       raise EXDataHttpUnauthorized.Create('Internal Error: LFC');
     end;
@@ -257,7 +267,8 @@ begin
       Query1.ExecSQL;
     except on E: Exception do
       begin
-       MainForm.mmInfo.Lines.Add('['+E.Classname+'] '+E.Message);
+        DBSupport.DisconnectQuery(DBConn, Query1);
+        MainForm.mmInfo.Lines.Add('['+E.Classname+'] '+E.Message);
         raise EXDataHttpUnauthorized.Create('Internal Error: IBI');
       end;
     end;
@@ -271,14 +282,21 @@ begin
     Query1.Open;
   except on E: Exception do
     begin
+      DBSupport.DisconnectQuery(DBConn, Query1);
       MainForm.mmInfo.Lines.Add('['+E.Classname+'] '+E.Message);
       raise EXDataHttpUnauthorized.Create('Internal Error: CS');
     end;
   end;
-  if Query1.RecordCount = 0
-  then raise EXDataHttpUnauthorized.Create('Login not authenticated: invalid login')
-  else if Query1.RecordCount > 1
-       then EXDataHttpUnauthorized.Create('Login not authenticated: ambiguous login');
+  if Query1.RecordCount = 0 then
+  begin
+    DBSupport.DisconnectQuery(DBConn, Query1);
+    raise EXDataHttpUnauthorized.Create('Login not authenticated: invalid login')
+  end
+  else if Query1.RecordCount > 1 then
+  begin
+    DBSupport.DisconnectQuery(DBConn, Query1);
+    EXDataHttpUnauthorized.Create('Login not authenticated: ambiguous login');
+  end;
 
   // Got the Person ID
   PersonID := Query1.FieldByName('person_id').AsInteger;
@@ -290,6 +308,7 @@ begin
     Query1.Open;
   except on E: Exception do
     begin
+      DBSupport.DisconnectQuery(DBConn, Query1);
       MainForm.mmInfo.Lines.Add('['+E.Classname+'] '+E.Message);
       raise EXDataHttpUnauthorized.Create('Internal Error: PRC');
     end;
@@ -321,6 +340,7 @@ begin
     then EMailAddress := Query1.FieldByName('value').AsString;
   except on E: Exception do
     begin
+      DBSupport.DisconnectQuery(DBConn, Query1);
       MainForm.mmInfo.Lines.Add('['+E.Classname+'] '+E.Message);
       raise EXDataHttpUnauthorized.Create('Internal Error: CE');
     end;
@@ -335,6 +355,7 @@ begin
     Query1.Open;
   except on E: Exception do
     begin
+      DBSupport.DisconnectQuery(DBConn, Query1);
       MainForm.mmInfo.Lines.Add('['+E.Classname+'] '+E.Message);
       raise EXDataHttpUnauthorized.Create('Internal Error: PPC');
     end;
@@ -385,6 +406,7 @@ begin
     Query1.ExecSQL;
   except on E: Exception do
     begin
+      DBSupport.DisconnectQuery(DBConn, Query1);
       MainForm.mmInfo.Lines.Add('['+E.Classname+'] '+E.Message);
       raise EXDataHttpUnauthorized.Create('Internal Error: TI');
     end;
@@ -400,6 +422,7 @@ begin
     Query1.ExecSQL;
   except on E: Exception do
     begin
+      DBSupport.DisconnectQuery(DBConn, Query1);
       MainForm.mmInfo.Lines.Add('['+E.Classname+'] '+E.Message);
       raise EXDataHttpUnauthorized.Create('Internal Error: LHI');
     end;
@@ -413,6 +436,7 @@ begin
     Query1.ExecSQL;
   except on E: Exception do
     begin
+      DBSupport.DisconnectQuery(DBConn, Query1);
       MainForm.mmInfo.Lines.Add('['+E.Classname+'] '+E.Message);
       raise EXDataHttpUnauthorized.Create('Internal Error: LCI');
     end;
@@ -432,6 +456,7 @@ begin
     Query1.ExecSQL;
   except on E: Exception do
     begin
+      DBSupport.DisconnectQuery(DBConn, Query1);
       MainForm.mmInfo.Lines.Add('['+E.Classname+'] '+E.Message);
       raise EXDataHttpUnauthorized.Create('Internal Error: EHI');
     end;
