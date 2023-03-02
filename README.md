@@ -12,4 +12,4 @@ The contents of this repository consist of a fully funcitional TMS XData project
 Initially, this example uses SQLite as its database, as well as a collection of include files for all of the SQL operations that have been implemented so far.  Over time, this will be expanded to include support for more databases and more queries.  If there's a database you'd like to see included in the template, by all means please post an Issue or, if you're able, make a Pull Request and we'll see that it gets added.
 
 ## Donations
-If you like what you see, and you are interested in contributing financially, please consider donating via [Buy Me a :pizza:](https://www.buymeacoffee.com/andrewsimard500).
+If you like what you see, and you are interested in contributing financially, please consider donating via [Buy Me a :pizza:](https://www.buymeacoffee.com/andrewsimard500).  Please be sure to check out all the other [repositories](https://github.com/500Foods?tab=repositories) that I've created as well.  
