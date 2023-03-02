@@ -1,6 +1,8 @@
 # TMS XData Template: Demo Data
 This repository contains a [TMS XData](https://www.tmssoftware.com/site/xdata.asp) project - a REST API server - that serves up a variety of endpoints and sample data.  This may be useful for those first learning to use TMS XData in their own projects.  Or as a template for starting a new TMS XData project, with many core features, like Swagger and a Login endpoint, already in place. This project originated as part of a series of blog posts about using TMS XData and [TMS WEB Core](https://www.tmssoftware.com/site/tmswebcore.asp) with different kinds of templates, the first of which can be found [here](https://www.tmssoftware.com/site/blog.asp?post=1068).
 
+A second repository, [TMS WEB Core Template Demo](https://github.com/500Foods/TMS-WEB-Core-TemplateDemo), contains the implementation of an example web client application that works specifically with this REST API.  It was created using a pre-release build of the [AdminLTE 4](https://github.com/ColorlibHQ/AdminLTE/tree/v4-dev) admin template, which works with Bootstrap 5.
+
 ## Getting Started
 In order to get the most of this repository, you'll need [Delphi](https://www.embarcadero.com/products/delphi) version 10 or later, as well as a current version of [TMS XData](https://www.tmssoftware.com/site/xdata.asp). Note that these are licensed commercial products, but trial versions of both are available on their respective websites.  Please review [The Unlicense](https://github.com/500Foods/TMS-XData-TemplateDemoData/blob/main/LICENSE) that applies to this repository.
 
