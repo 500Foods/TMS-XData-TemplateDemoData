@@ -6,7 +6,15 @@ A second repository, [TMS WEB Core Template Demo](https://github.com/500Foods/TM
 ## Getting Started
 In order to get the most of this repository, you'll need [Delphi](https://www.embarcadero.com/products/delphi) version 10 or later, as well as a current version of [TMS XData](https://www.tmssoftware.com/site/xdata.asp). Note that these are licensed commercial products, but trial versions of both are available on their respective websites.  Please review [The Unlicense](https://github.com/500Foods/TMS-XData-TemplateDemoData/blob/main/LICENSE) that applies to this repository.
 
-The contents of this repository consist of a fully funcitional TMS XData project.  It can be compiled and run as-is without further modification, which will generate a Win64 REST API server application.  Several endpoints, sample data, a SQLite database, and Swagger are already configured. Please refer to the blog post referenced above for more information.
+The contents of this repository consist of a fully funcitional TMS XData project.  It can be compiled and run as-is without further modification, which will generate a Win64 REST API server application.  Several endpoints, sample data, a SQLite database, and Swagger are already configured.  
+
+![image](https://user-images.githubusercontent.com/41052272/222645643-2827211b-6750-45d5-ad8e-db758ed194e6.png)
+*XData Server Application Running*
+
+Not much to look at, honestly, but that's just the server application.  All it is primarily used for is starting and stopping the REST API server, and as it starts automatically, there's usually not much need to use it directly, hence the lack of much of a UI. The recommended way to test its functions is through the use of its Swagger interface, which is already configured in this project.
+
+![image](https://user-images.githubusercontent.com/41052272/222646739-118e88fd-e47d-4bbf-b17a-90af3499b1da.png)
+*Testing with Swagger Interface*
 
 ## Usage Note: RandomDLL.DLL
 This DLL needs to be included in the same folder as the project executable. It is needed by the SHA-256 hash function that is used in several places, that, in turn, comes from the [TMS Cryptography Pack](https://www.tmssoftware.com/site/tmscrypto.asp). A post-build event has been added to the project to do this automatically.  This assumes that a Win64 project is being built.  Please adjust accordingly.
