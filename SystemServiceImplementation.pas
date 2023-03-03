@@ -145,9 +145,9 @@ begin
   ExpiresAt := IncMinute(IssuedAt,15);
 
   // Check that we've got values for all of the above.
-  if Trim(Login_ID) = '' then raise EXDataHttpUnauthorized.Create('Login_ID cannot be blank');
+  if Trim(Login_ID) = '' then raise EXDataHttpUnauthorized.Create('Username cannot be blank');
   if Trim(Password) = '' then raise EXDataHttpUnauthorized.Create('Password cannot be blank');
-  if Trim(API_Key) = '' then raise EXDataHttpUnauthorized.Create('API_Key cannot be blank');
+  if Trim(API_Key) = '' then raise EXDataHttpUnauthorized.Create('API Key cannot be blank');
   if Trim(TZ) = '' then raise EXDataHttpUnauthorized.Create('TZ cannot be blank');
 
   // Figure out if we have a valid TZ
