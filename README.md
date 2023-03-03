@@ -14,8 +14,8 @@ This DLL needs to be included in the same folder as the project executable. It i
 ## Key Dependencies
 As with any modern application, other libraries/dependencies have been used in this project.
 - [TMS XData](https://www.tmssoftware.com/site/tmswebcore.asp) - This is a TMS XData project, after all
-- [TZDB](https://github.com/pavkam/tzdb) - Comprehensive IANA TZ library for Delphi
 - [TMS Cryptography Pack](https://www.tmssoftware.com/site/tmscrypto.asp) - Supples the SHA-256 hash function
+- [TZDB](https://github.com/pavkam/tzdb) - Comprehensive IANA TZ library for Delphi
 
 ## Contributions
 Initially, this example uses SQLite as its database, as well as a collection of include files for all of the SQL operations that have been implemented so far.  Over time, this will be expanded to include support for more databases and more queries.  If there's a database you'd like to see included in the template, by all means please post an Issue or, if you're able, make a Pull Request and we'll see that it gets added.
