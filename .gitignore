@@ -28,7 +28,7 @@
 
 # Delphi compiler-generated binaries (safe to delete)
 *.exe
-*.dll
+# *.dll - actually, we ant this one
 *.bpl
 *.bpi
 *.dcp
