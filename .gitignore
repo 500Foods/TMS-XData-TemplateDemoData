@@ -68,7 +68,7 @@ __recovery/
 # Boss dependency manager vendor folder https://github.com/HashLoad/boss
 modules/
 
-# Not needed for TMS WEB Core projects
+# Not needed for TMS WEB Core projects on GitHub
 Win32/
 Win64/
 TMSWeb/
