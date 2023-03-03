@@ -9,7 +9,7 @@ In order to get the most of this repository, you'll need [Delphi](https://www.em
 The contents of this repository consist of a fully funcitional TMS XData project.  It can be compiled and run as-is without further modification, which will generate a Win64 REST API server application.  Several endpoints, sample data, a SQLite database, and Swagger are already configured. Please refer to the blog post referenced above for more information.
 
 ## Usage Note: RandomDLL.DLL
-This DLL needs to be included in the same folder as the project executable. It is needed by the SHA-256 hash function that is used in several places, that, in turn, comes from the [TMS Cryptography Pack](https://www.tmssoftware.com/site/tmscrypto.asp).
+This DLL needs to be included in the same folder as the project executable. It is needed by the SHA-256 hash function that is used in several places, that, in turn, comes from the [TMS Cryptography Pack](https://www.tmssoftware.com/site/tmscrypto.asp). A post-build event has been added to the project to do this automatically.  This assumes that a Win64 project is being built.  Please adjust accordingly.
 
 ## Key Dependencies
 As with any modern application, other libraries/dependencies have been used in this project.
