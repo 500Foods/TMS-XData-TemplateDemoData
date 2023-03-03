@@ -139,26 +139,26 @@
         <DelphiCompile Include="$(MainSource)">
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
-        <DCCReference Include="Unit1.pas">
+        <DCCReference Include="units\Unit1.pas">
             <Form>ServerContainer</Form>
             <FormType>dfm</FormType>
             <DesignClass>TDataModule</DesignClass>
         </DCCReference>
-        <DCCReference Include="Unit2.pas">
+        <DCCReference Include="units\Unit2.pas">
             <Form>MainForm</Form>
             <FormType>dfm</FormType>
         </DCCReference>
-        <DCCReference Include="Unit3.pas">
+        <DCCReference Include="units\Unit3.pas">
             <Form>DBSupport</Form>
             <DesignClass>TDataModule</DesignClass>
         </DCCReference>
-        <DCCReference Include="SystemService.pas"/>
-        <DCCReference Include="SystemServiceImplementation.pas"/>
+        <DCCReference Include="units\SystemService.pas"/>
+        <DCCReference Include="units\SystemServiceImplementation.pas"/>
         <DCCReference Include="TZDB.pas"/>
-        <DCCReference Include="PersonService.pas"/>
-        <DCCReference Include="PersonServiceImplementation.pas"/>
-        <DCCReference Include="DashboardService.pas"/>
-        <DCCReference Include="DashboardServiceImplementation.pas"/>
+        <DCCReference Include="units\PersonService.pas"/>
+        <DCCReference Include="units\PersonServiceImplementation.pas"/>
+        <DCCReference Include="units\DashboardService.pas"/>
+        <DCCReference Include="units\DashboardServiceImplementation.pas"/>
         <None Include="RandomDLL.dll"/>
         <None Include="ddl\person\person.inc"/>
         <None Include="ddl\person\person_sqlite.inc"/>
@@ -451,13 +451,13 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="sql\person\photo\photo_sqlite.inc" Configuration="Release" Class="ProjectFile">
+                <DeployFile LocalName="sql\system\person_role_check\person_role_check_sqlite.inc" Configuration="Release" Class="ProjectFile">
                     <Platform Name="Win64">
                         <RemoteDir>.\</RemoteDir>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="ddl\login_history\login_history_sqlite.inc" Configuration="Release" Class="ProjectFile">
+                <DeployFile LocalName="sql\person\photo\photo_sqlite.inc" Configuration="Release" Class="ProjectFile">
                     <Platform Name="Win64">
                         <RemoteDir>.\</RemoteDir>
                         <Overwrite>true</Overwrite>
@@ -469,7 +469,7 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="sql\system\person_role_check\person_role_check_sqlite.inc" Configuration="Release" Class="ProjectFile">
+                <DeployFile LocalName="ddl\login_history\login_history_sqlite.inc" Configuration="Release" Class="ProjectFile">
                     <Platform Name="Win64">
                         <RemoteDir>.\</RemoteDir>
                         <Overwrite>true</Overwrite>

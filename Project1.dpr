@@ -2,16 +2,16 @@ program Project1;
 
 uses
   Vcl.Forms,
-  Unit1 in 'Unit1.pas' {ServerContainer: TDataModule},
-  Unit2 in 'Unit2.pas' {MainForm},
-  Unit3 in 'Unit3.pas' {DBSupport: TDataModule},
-  SystemService in 'SystemService.pas',
-  SystemServiceImplementation in 'SystemServiceImplementation.pas',
+  Unit1 in 'units\Unit1.pas' {ServerContainer: TDataModule},
+  Unit2 in 'units\Unit2.pas' {MainForm},
+  Unit3 in 'units\Unit3.pas' {DBSupport: TDataModule},
+  SystemService in 'units\SystemService.pas',
+  SystemServiceImplementation in 'units\SystemServiceImplementation.pas',
   TZDB in 'TZDB.pas',
-  PersonService in 'PersonService.pas',
-  PersonServiceImplementation in 'PersonServiceImplementation.pas',
-  DashboardService in 'DashboardService.pas',
-  DashboardServiceImplementation in 'DashboardServiceImplementation.pas';
+  PersonService in 'units\PersonService.pas',
+  PersonServiceImplementation in 'units\PersonServiceImplementation.pas',
+  DashboardService in 'units\DashboardService.pas',
+  DashboardServiceImplementation in 'units\DashboardServiceImplementation.pas';
 
 {$R *.res}
 
