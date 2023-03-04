@@ -1,4 +1,4 @@
-// [query] jwt_check
+// [query] token_check
 
 if (DatabaseEngine = 'sqlite') then
 begin

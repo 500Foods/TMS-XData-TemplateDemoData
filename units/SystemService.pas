@@ -68,6 +68,29 @@ type
     ///  </param>
     [HttpGet] function Login(Login_ID: String; Password: String; API_Key: String; TZ: String):TStream;
 
+    ///  <summary>
+    ///    Logout - revoke the JWT.
+    ///  </summary>
+    ///  <remarks>
+    ///    The JWT issued by the Login endpoint is good for a set period of time.  This will revoke
+    ///    the JWT, making it invalid immediately rather than when it expires after a period of time.
+    ///  </remarks>
+    ///  <param name="ActivityLog">
+    ///    Client action log.
+    ///  </param>
+    [HttpGet] function Logout(ActionLog: String):TStream;
+
+    ///  <summary>
+    ///    Renew a previously issued JWT.
+    ///  </summary>
+    ///  <remarks>
+    ///    The JWT issued by the Login endpoint is good for a set period of time.
+    ///    This endpoint will re-issue a new JWT with the same claims for another period of time.
+    ///  </remarks>
+    ///  <param name="ActivityLog">
+    ///    Client action log.
+    ///  </param>
+    [HttpGet] function Renew(ActionLog: String):TStream;
   end;
 
 implementation

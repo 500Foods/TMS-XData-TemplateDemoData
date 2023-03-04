@@ -8,6 +8,9 @@ uses
   System.JSON,
   System.DateUtils,
 
+  Sparkle.HttpSys.Server,
+  Sparkle.Security,
+
   XData.Server.Module,
   XData.Service.Common,
   XData.Sys.Exceptions,
@@ -32,12 +35,16 @@ type
 
     function Info(TZ: String):TStream;
     function Login(Login_ID: String; Password: String; API_Key: String; TZ: String):TStream;
-
+    function Logout(ActionLog: String):TStream;
+    function Renew(ActionLog: String):TStream;
   end;
 
 implementation
 
 uses Unit1, Unit2, Unit3, TZDB;
+
+const
+  JWT_PERIOD = 2;  // How long a JWT is valid for, in minutes
 
 function TSystemService.Info(TZ: String):TStream;
 var
@@ -140,9 +147,9 @@ begin
   // Time this event
   ElapsedTime := Now;
 
-  // We're creating a JWT now that is valid for 15 minutes
+  // We're creating a JWT now that is valid for JWT_PERIOD minutes
   IssuedAt := Now;
-  ExpiresAt := IncMinute(IssuedAt,15);
+  ExpiresAt := IncMinute(IssuedAt, JWT_PERIOD);
 
   // Check that we've got values for all of the above.
   if Trim(Login_ID) = '' then raise EXDataHttpUnauthorized.Create('Username cannot be blank');
@@ -313,7 +320,11 @@ begin
       raise EXDataHttpUnauthorized.Create('Internal Error: PRC');
     end;
   end;
-  if Query1.FieldByName('role_id').AsInteger <> 0 then raise EXDataHttpUnauthorized.Create('Login not authorized');
+  if Query1.FieldByName('role_id').AsInteger <> 0 then
+  begin
+    DBSupport.DisconnectQuery(DBConn, Query1);
+    raise EXDataHttpUnauthorized.Create('Login not authorized');
+  end;
 
   // Login role is present, so let's make a note of the other roles
   Roles := '';
@@ -360,7 +371,11 @@ begin
       raise EXDataHttpUnauthorized.Create('Internal Error: PPC');
     end;
   end;
-  if Query1.RecordCount <> 1 then raise EXDataHttpUnauthorized.Create('Login not authenticated: invalid password');
+  if Query1.RecordCount <> 1 then
+  begin
+    DBSupport.DisconnectQuery(DBConn, Query1);
+    raise EXDataHttpUnauthorized.Create('Login not authenticated: invalid password');
+  end;
 
   // Login has been authenticated and authorized.
 
@@ -473,6 +488,206 @@ begin
     end;
   end;
 
+end;
+
+function TSystemService.Logout(ActionLog: String): TStream;
+begin
+
+end;
+
+function TSystemService.Renew(ActionLog: String): TStream;
+var
+  DBConn: TFDConnection;
+  Query1: TFDQuery;
+  DatabaseEngine: String;
+  DatabaseName: String;
+  ClientTimeZone: TBundledTimeZone;
+  ValidTimeZone: Boolean;
+  ElapsedTime: TDateTime;
+
+  PersonID: Integer;
+  ApplicationName: String;
+  Roles: String;
+  EMailAddress: String;
+  PasswordHash: String;
+
+  OldJWT: String;
+  JWT: TJWT;
+  JWTString: String;
+  IssuedAt: TDateTime;
+  ExpiresAt: TDateTime;
+
+  User: IUserIdentity;
+begin
+  // Returning JWT, so flag it as such
+  TXDataOperationContext.Current.Response.Headers.SetValue('content-type', 'application/jwt');
+
+  // Time this event
+  ElapsedTime := Now;
+
+  // We're creating a JWT now that is valid for JWT_PERIOD minutes
+  IssuedAt := Now;
+  ExpiresAt := IncMinute(IssuedAt, JWT_PERIOD);
+
+  // Get data from the JWT
+  User := TXDataOperationContext.Current.Request.User;
+  OldJWT := TXDataOperationContext.Current.Request.Headers.Get('Authorization');
+  if (User = nil) then raise EXDataHttpUnauthorized.Create('Missing authentication');
+
+  // Setup DB connection and query
+  DatabaseName := MainForm.DatabaseName;
+  DatabaseEngine := MainForm.DatabaseEngine;
+  try
+    DBSupport.ConnectQuery(DBConn, Query1, DatabaseName, DatabaseEngine);
+  except on E: Exception do
+    begin
+      DBSupport.DisconnectQuery(DBConn, Query1);
+      MainForm.mmInfo.Lines.Add('['+E.Classname+'] '+E.Message);
+      raise EXDataHttpUnauthorized.Create('Internal Error: CQ');
+    end;
+  end;
+
+  // Check if we've got a valid JWT (one that has not been revoked)
+  try
+    {$Include sql\system\token_check\token_check.inc}
+    Query1.ParamByName('TOKENHASH').AsString := DBSupport.HashThis(OldJWT);
+    Query1.Open;
+  except on E: Exception do
+    begin
+      MainForm.mmInfo.Lines.Add('['+E.Classname+'] '+E.Message);
+      raise EXDataHttpUnauthorized.Create('Internal Error: JC');
+    end;
+  end;
+  if Query1.RecordCount <> 1 then
+  begin
+    DBSupport.DisconnectQuery(DBConn, Query1);
+    raise EXDataHttpUnauthorized.Create('JWT was not validated');
+  end;
+
+  // Ok, we've got a person, let's see if they've got the required Login role
+  try
+    {$Include sql\system\person_role_check\person_role_check.inc}
+    Query1.ParamByName('PERSONID').AsInteger := User.Claims.Find('usr').asInteger;
+    Query1.Open;
+  except on E: Exception do
+    begin
+      DBSupport.DisconnectQuery(DBConn, Query1);
+      MainForm.mmInfo.Lines.Add('['+E.Classname+'] '+E.Message);
+      raise EXDataHttpUnauthorized.Create('Internal Error: PRC');
+    end;
+  end;
+  if Query1.FieldByName('role_id').AsInteger <> 0 then
+  begin
+    DBSupport.DisconnectQuery(DBConn, Query1);
+    raise EXDataHttpUnauthorized.Create('Login not authorized');
+  end;
+
+  // Check if we've got a valid JWT (one that has not been revoked)
+  try
+    {$Include sql\system\token_check\token_check.inc}
+    Query1.ParamByName('TOKENHASH').AsString := DBSupport.HashThis(OldJWT);
+    Query1.Open;
+  except on E: Exception do
+    begin
+      MainForm.mmInfo.Lines.Add('['+E.Classname+'] '+E.Message);
+      raise EXDataHttpUnauthorized.Create('Internal Error: JC');
+    end;
+  end;
+  if Query1.RecordCount <> 1 then
+  begin
+    DBSupport.DisconnectQuery(DBConn, Query1);
+    raise EXDataHttpUnauthorized.Create('JWT was not validated');
+  end;
+
+  // Revoke JWT
+  try
+    {$Include sql\system\token_revoke\token_revoke.inc}
+    Query1.ParamByName('TOKENHASH').AsString := DBSupport.HashThis(OldJWT);
+    Query1.ExecSQL;
+  except on E: Exception do
+    begin
+      MainForm.mmInfo.Lines.Add('['+E.Classname+'] '+E.Message);
+      raise EXDataHttpUnauthorized.Create('Internal Error: TR');
+    end;
+  end;
+
+  // Generate a new JWT
+  JWT := TJWT.Create;
+  try
+    // Setup some Claims
+    JWT.Claims.Issuer := MainForm.AppName;
+    JWT.Claims.SetClaimOfType<string>( 'ver', User.Claims.Find('ver').asString);
+    JWT.Claims.SetClaimOfType<string>( 'tzn', User.Claims.Find('tzn').asString);
+    JWT.Claims.SetClaimOfType<integer>('usr', User.Claims.Find('usr').asInteger);
+    JWT.Claims.SetClaimOfType<string>( 'app', User.Claims.Find('app').asString);
+    JWT.Claims.SetClaimOfType<string>( 'dbn', User.Claims.Find('dbn').asString);
+    JWT.Claims.SetClaimOfType<string>( 'dbe', User.Claims.Find('dbe').asString);
+    JWT.Claims.SetClaimOfType<string>( 'rol', User.Claims.Find('rol').asString);
+    JWT.Claims.SetClaimOfType<string>( 'eml', User.Claims.Find('eml').asString);
+    JWT.Claims.SetClaimOfType<string>( 'fnm', User.Claims.Find('fnm').asString);
+    JWT.Claims.SetClaimOfType<string>( 'mnm', User.Claims.Find('mnm').asString);
+    JWT.Claims.SetClaimOfType<string>( 'lnm', User.Claims.Find('lnm').asString);
+    JWT.Claims.SetClaimOfType<string>( 'anm', User.Claims.Find('anm').asString);
+    JWT.Claims.SetClaimOfType<string>( 'net', User.Claims.Find('net').asString);
+    JWT.Claims.SetClaimOfType<string>( 'aft', FormatDateTime('yyyy-mm-dd hh:nn:ss.zzz',  TTimeZone.local.ToUniversalTime(IssuedAt))+' UTC');
+    JWT.Claims.SetClaimOfType<string>( 'unt', FormatDateTime('yyyy-mm-dd hh:nn:ss.zzz',  TTimeZone.local.ToUniversalTime(ExpiresAt))+' UTC');
+    JWT.Claims.SetClaimOfType<integer>('iat', DateTimeToUnix(TTimeZone.local.ToUniversalTime(IssuedAt)));
+    JWT.Claims.Expiration := ExpiresAt; // Gets converted to UTC automatically
+
+    // Generate the actual JWT
+    JWTSTring := 'Bearer '+TJOSE.SHA256CompactToken(ServerContainer.XDataServerJWT.Secret, JWT);
+    Result := TStringStream.Create(JWTString);
+
+  finally
+    JWT.Free;
+  end;
+
+  // Add the JWT to a table that we'll use to help with expring tokens
+  try
+    {$Include sql\system\token_insert\token_insert.inc}
+    Query1.ParamByName('TOKENHASH').AsString := DBSupport.HashThis(JWTString);
+    Query1.ParamByName('PERSONID').AsInteger := User.Claims.Find('usr').asInteger;
+    Query1.ParamByName('VALIDAFTER').AsDateTime := TTimeZone.local.ToUniversalTime(IssuedAt);
+    Query1.ParamByName('VALIDUNTIL').AsDateTime := TTimeZone.local.ToUniversalTime(ExpiresAt);
+    Query1.ParamByName('APPLICATION').AsString := User.Claims.Find('app').asString;
+    Query1.ExecSQL;
+  except on E: Exception do
+    begin
+      DBSupport.DisconnectQuery(DBConn, Query1);
+      MainForm.mmInfo.Lines.Add('['+E.Classname+'] '+E.Message);
+      raise EXDataHttpUnauthorized.Create('Internal Error: TI');
+    end;
+  end;
+
+  // Keep track of endpoint history
+  try
+    {$Include sql\system\endpoint_history_insert\endpoint_history_insert.inc}
+    Query1.ParamByName('ENDPOINT').AsString := 'SystemService.Renew';
+    Query1.ParamByName('ACCESSED').AsDateTime := TTimeZone.local.ToUniversalTime(ElapsedTime);
+    Query1.ParamByName('IPADDRESS').AsString := TXDataOperationContext.Current.Request.RemoteIP;
+    Query1.ParamByName('APPLICATION').AsString := User.Claims.Find('app').asString;
+    Query1.ParamByName('DATABASENAME').AsString := User.Claims.Find('dbn').asString;
+    Query1.ParamByName('DATABASEENGINE').AsString := User.Claims.Find('dbe').asString;
+    Query1.ParamByName('EXECUTIONMS').AsInteger := MillisecondsBetween(Now,ElapsedTime);
+    Query1.ParamByName('DETAILS').AsString := '['+User.Claims.Find('anm').asString+']';
+    Query1.ExecSQL;
+  except on E: Exception do
+    begin
+      DBSupport.DisconnectQuery(DBConn, Query1);
+      MainForm.mmInfo.Lines.Add('['+E.Classname+'] '+E.Message);
+      raise EXDataHttpUnauthorized.Create('Internal Error: EHI');
+    end;
+  end;
+
+  // All Done
+  try
+    DBSupport.DisconnectQuery(DBConn, Query1);
+  except on E: Exception do
+    begin
+      MainForm.mmInfo.Lines.Add('['+E.Classname+'] '+E.Message);
+      raise EXDataHttpUnauthorized.Create('Internal Error: DQ');
+    end;
+  end;
 end;
 
 initialization

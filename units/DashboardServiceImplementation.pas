@@ -81,7 +81,7 @@ begin
 
   // Check if we've got a valid JWT (one that has not been revoked)
   try
-    {$Include sql\system\jwt_check\jwt_check.inc}
+    {$Include sql\system\token_check\token_check.inc}
     Query1.ParamByName('TOKENHASH').AsString := DBSupport.HashThis(JWT);
     Query1.Open;
   except on E: Exception do

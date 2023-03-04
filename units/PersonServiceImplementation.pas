@@ -74,7 +74,7 @@ begin
 
   // Check if we've got a valid JWT (one that has not been revoked)
   try
-    {$Include sql\system\jwt_check\jwt_check.inc}
+    {$Include sql\system\token_check\token_check.inc}
     Query1.ParamByName('TOKENHASH').AsString := DBSupport.HashThis(JWT);
     Query1.Open;
   except on E: Exception do
@@ -83,13 +83,19 @@ begin
       raise EXDataHttpUnauthorized.Create('Internal Error: JC');
     end;
   end;
-  if Query1.RecordCount <> 1 then raise EXDataHttpUnauthorized.Create('JWT was not validated');
+  if Query1.RecordCount <> 1 then
+  begin
+    DBSupport.DisconnectQuery(DBConn, Query1);
+    raise EXDataHttpUnauthorized.Create('JWT was not validated');
+  end;
 
+  // Get the data that we want to return as a Query result set
   try
     {$Include sql\person\directory\directory.inc}
     Query1.Open;
   except on E: Exception do
     begin
+      DBSupport.DisconnectQuery(DBConn, Query1);
       MainForm.mmInfo.Lines.Add('['+E.Classname+'] '+E.Message);
       raise EXDataHttpUnauthorized.Create('Internal Error: Directory');
     end;
@@ -112,6 +118,7 @@ begin
     Query1.ExecSQL;
   except on E: Exception do
     begin
+      DBSupport.DisconnectQuery(DBConn, Query1);
       MainForm.mmInfo.Lines.Add('['+E.Classname+'] '+E.Message);
       raise EXDataHttpUnauthorized.Create('Internal Error: EHI');
     end;
