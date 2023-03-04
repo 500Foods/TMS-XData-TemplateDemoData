@@ -10,11 +10,13 @@ begin
 
     SQL.Clear;
     SQL.Add('create table if not exists endpoint_history ('+
+            '  person_id                  integer     NOT NULL, '+
             '  endpoint                   text        NOT NULL, '+
             '  accessed                   text        NOT NULL, '+
             '  execution_ms               integer     NOT NULL, '+
             '  ip_address                 text        NOT NULL, '+
             '  application                text        NOT NULL, '+
+            '  version                    text        NOT NULL, '+
             '  database_name              text        NOT NULL, '+
             '  database_engine            text        NOT NULL, '+
             '  details                    text                  '+

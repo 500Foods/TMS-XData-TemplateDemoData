@@ -45,8 +45,6 @@ var
   Query1: TFDQuery;
   DatabaseName: String;
   DatabaseEngine: String;
-  ClientTimeZone: TBundledTimeZone;
-  ValidTimeZone: Boolean;
   ElapsedTime: TDateTime;
   User: IUserIdentity;
   JWT: String;
@@ -144,14 +142,16 @@ begin
   // Keep track of endpoint history
   try
     {$Include sql\system\endpoint_history_insert\endpoint_history_insert.inc}
+    Query1.ParamByName('PERSONID').AsInteger := User.Claims.Find('usr').AsInteger;
     Query1.ParamByName('ENDPOINT').AsString := 'DashboardService.AdministratorDashboard';
     Query1.ParamByName('ACCESSED').AsDateTime := TTimeZone.local.ToUniversalTime(ElapsedTime);
     Query1.ParamByName('IPADDRESS').AsString := TXDataOperationContext.Current.Request.RemoteIP;
     Query1.ParamByName('APPLICATION').AsString := User.Claims.Find('app').AsString;
+    Query1.ParamByName('VERSION').AsString := MainForm.AppVersion;
     Query1.ParamByName('DATABASENAME').AsString := DatabaseName;
     Query1.ParamByName('DATABASEENGINE').AsString := DatabaseEngine;
     Query1.ParamByName('EXECUTIONMS').AsInteger := MillisecondsBetween(Now,ElapsedTime);
-    Query1.ParamByName('DETAILS').AsString := '[]';
+    Query1.ParamByName('DETAILS').AsString := '['+User.Claims.Find('anm').AsString+']';
     Query1.ExecSQL;
   except on E: Exception do
     begin

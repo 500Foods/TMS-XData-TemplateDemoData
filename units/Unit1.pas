@@ -38,8 +38,6 @@ implementation
 {$R *.dfm}
 
 procedure TServerContainer.DataModuleCreate(Sender: TObject);
-var
-  i: Integer;
 begin
   // Setup Swagger Header
   TXDataModelBuilder.LoadXMLDoc(XDataServer.Model);
@@ -48,7 +46,6 @@ begin
   XDataServer.Model.Description :=
     '### Overview'#13#10 +
     'This is the REST API for interacting with the XData Template Demo.';
-
 end;
 
 end.

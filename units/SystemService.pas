@@ -75,7 +75,7 @@ type
     ///    The JWT issued by the Login endpoint is good for a set period of time.  This will revoke
     ///    the JWT, making it invalid immediately rather than when it expires after a period of time.
     ///  </remarks>
-    ///  <param name="ActivityLog">
+    ///  <param name="ActionLog">
     ///    Client action log.
     ///  </param>
     [HttpGet] function Logout(ActionLog: String):TStream;
@@ -87,7 +87,7 @@ type
     ///    The JWT issued by the Login endpoint is good for a set period of time.
     ///    This endpoint will re-issue a new JWT with the same claims for another period of time.
     ///  </remarks>
-    ///  <param name="ActivityLog">
+    ///  <param name="ActionLog">
     ///    Client action log.
     ///  </param>
     [HttpGet] function Renew(ActionLog: String):TStream;

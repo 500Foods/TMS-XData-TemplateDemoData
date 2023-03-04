@@ -25,6 +25,8 @@ uses
   FireDAC.Comp.BatchMove.Dataset,
   FireDAC.Comp.BatchMove.JSON,
 
+  Data.DB,
+
   ActiveX; // For Co/UnInitailze when using XML StreamFormat;
 
 type

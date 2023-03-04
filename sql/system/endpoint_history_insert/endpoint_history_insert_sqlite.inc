@@ -9,13 +9,15 @@ begin
     SQL.Clear;
     SQL.Add('insert into '+
             '  endpoint_history '+
-            '    (endpoint, accessed, execution_ms, ip_address, application, database_name, database_engine, details) '+
+            '    (person_id, endpoint, accessed, execution_ms, ip_address, application, version, database_name, database_engine, details) '+
             'values( '+
+            '  :PERSONID, '+
             '  :ENDPOINT, '+
             '  :ACCESSED, '+
             '  :EXECUTIONMS, '+
             '  :IPADDRESS, '+
             '  :APPLICATION, '+
+            '  :VERSION, '+
             '  :DATABASENAME, '+
             '  :DATABASEENGINE, '+
             '  :DETAILS '+

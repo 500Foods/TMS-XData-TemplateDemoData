@@ -355,6 +355,7 @@ begin
   {$Include ddl\login_history\login_history.inc}
   {$Include ddl\token\token.inc}
   {$Include ddl\photo\photo.inc}
+  {$Include ddl\action_history\action_history.inc}
 
   mmInfo.Lines.Add('Done.');
   mmInfo.Lines.Add('');

@@ -460,10 +460,12 @@ begin
   // Keep track of endpoint history
   try
     {$Include sql\system\endpoint_history_insert\endpoint_history_insert.inc}
+    Query1.ParamByName('PERSONID').AsInteger := PersonID;
     Query1.ParamByName('ENDPOINT').AsString := 'SystemService.Login';
     Query1.ParamByName('ACCESSED').AsDateTime := TTimeZone.local.ToUniversalTime(ElapsedTime);
     Query1.ParamByName('IPADDRESS').AsString := TXDataOperationContext.Current.Request.RemoteIP;
     Query1.ParamByName('APPLICATION').AsString := ApplicationName;
+    Query1.ParamByName('VERSION').AsString := MainForm.AppVersion;
     Query1.ParamByName('DATABASENAME').AsString := DatabaseName;
     Query1.ParamByName('DATABASEENGINE').AsString := DatabaseEngine;
     Query1.ParamByName('EXECUTIONMS').AsInteger := MillisecondsBetween(Now,ElapsedTime);
@@ -491,7 +493,119 @@ begin
 end;
 
 function TSystemService.Logout(ActionLog: String): TStream;
+var
+  DBConn: TFDConnection;
+  Query1: TFDQuery;
+  DatabaseEngine: String;
+  DatabaseName: String;
+  ElapsedTime: TDateTime;
+
+  OldJWT: String;
+
+  User: IUserIdentity;
 begin
+  // Returning JWT, so flag it as such
+  TXDataOperationContext.Current.Response.Headers.SetValue('content-type', 'application/jwt');
+
+  // Time this event
+  ElapsedTime := Now;
+
+  // Get data from the JWT
+  User := TXDataOperationContext.Current.Request.User;
+  OldJWT := TXDataOperationContext.Current.Request.Headers.Get('Authorization');
+  if (User = nil) then raise EXDataHttpUnauthorized.Create('Missing authentication');
+
+  // Setup DB connection and query
+  DatabaseName := MainForm.DatabaseName;
+  DatabaseEngine := MainForm.DatabaseEngine;
+  try
+    DBSupport.ConnectQuery(DBConn, Query1, DatabaseName, DatabaseEngine);
+  except on E: Exception do
+    begin
+      DBSupport.DisconnectQuery(DBConn, Query1);
+      MainForm.mmInfo.Lines.Add('['+E.Classname+'] '+E.Message);
+      raise EXDataHttpUnauthorized.Create('Internal Error: CQ');
+    end;
+  end;
+
+  // Check if we've got a valid JWT (one that has not been revoked)
+  try
+    {$Include sql\system\token_check\token_check.inc}
+    Query1.ParamByName('TOKENHASH').AsString := DBSupport.HashThis(OldJWT);
+    Query1.Open;
+  except on E: Exception do
+    begin
+      MainForm.mmInfo.Lines.Add('['+E.Classname+'] '+E.Message);
+      raise EXDataHttpUnauthorized.Create('Internal Error: JC');
+    end;
+  end;
+  if Query1.RecordCount <> 1 then
+  begin
+    DBSupport.DisconnectQuery(DBConn, Query1);
+    raise EXDataHttpUnauthorized.Create('JWT was not validated');
+  end;
+
+  // Revoke JWT
+  try
+    {$Include sql\system\token_revoke\token_revoke.inc}
+    Query1.ParamByName('TOKENHASH').AsString := DBSupport.HashThis(OldJWT);
+    Query1.ExecSQL;
+  except on E: Exception do
+    begin
+      MainForm.mmInfo.Lines.Add('['+E.Classname+'] '+E.Message);
+      raise EXDataHttpUnauthorized.Create('Internal Error: TR');
+    end;
+  end;
+
+  // Record Action History
+  try
+    {$Include sql\system\action_history_insert\action_history_insert.inc}
+    Query1.ParamByName('PERSONID').AsInteger := User.Claims.Find('usr').asInteger;
+    Query1.ParamByName('IPADDRESS').AsString := TXDataOperationContext.Current.Request.RemoteIP;
+    Query1.ParamByName('APPLICATION').AsString := User.Claims.Find('app').asString;
+    Query1.ParamByName('VERSION').AsString := User.Claims.Find('ver').asString;
+    Query1.ParamByName('ACCESSED').AsDateTime := TTimeZone.local.ToUniversalTime(ElapsedTime);
+    Query1.ParamByName('ACTIONS').AsString := ActionLog;
+    Query1.ExecSQL;
+  except on E: Exception do
+    begin
+      DBSupport.DisconnectQuery(DBConn, Query1);
+      MainForm.mmInfo.Lines.Add('['+E.Classname+'] '+E.Message);
+      raise EXDataHttpUnauthorized.Create('Internal Error: EHI');
+    end;
+  end;
+
+  // Keep track of endpoint history
+  try
+    {$Include sql\system\endpoint_history_insert\endpoint_history_insert.inc}
+    Query1.ParamByName('PERSONID').AsInteger := User.Claims.Find('usr').asInteger;
+    Query1.ParamByName('ENDPOINT').AsString := 'SystemService.Renew';
+    Query1.ParamByName('ACCESSED').AsDateTime := TTimeZone.local.ToUniversalTime(ElapsedTime);
+    Query1.ParamByName('IPADDRESS').AsString := TXDataOperationContext.Current.Request.RemoteIP;
+    Query1.ParamByName('APPLICATION').AsString := User.Claims.Find('app').asString;
+    Query1.ParamByName('VERSION').AsString := User.Claims.Find('ver').asString;
+    Query1.ParamByName('DATABASENAME').AsString := User.Claims.Find('dbn').asString;
+    Query1.ParamByName('DATABASEENGINE').AsString := User.Claims.Find('dbe').asString;
+    Query1.ParamByName('EXECUTIONMS').AsInteger := MillisecondsBetween(Now,ElapsedTime);
+    Query1.ParamByName('DETAILS').AsString := '['+User.Claims.Find('anm').asString+']';
+    Query1.ExecSQL;
+  except on E: Exception do
+    begin
+      DBSupport.DisconnectQuery(DBConn, Query1);
+      MainForm.mmInfo.Lines.Add('['+E.Classname+'] '+E.Message);
+      raise EXDataHttpUnauthorized.Create('Internal Error: EHI');
+    end;
+  end;
+
+  // All Done
+  try
+    DBSupport.DisconnectQuery(DBConn, Query1);
+  except on E: Exception do
+    begin
+      MainForm.mmInfo.Lines.Add('['+E.Classname+'] '+E.Message);
+      raise EXDataHttpUnauthorized.Create('Internal Error: DQ');
+    end;
+  end;
 
 end;
 
@@ -501,21 +615,14 @@ var
   Query1: TFDQuery;
   DatabaseEngine: String;
   DatabaseName: String;
-  ClientTimeZone: TBundledTimeZone;
-  ValidTimeZone: Boolean;
   ElapsedTime: TDateTime;
-
-  PersonID: Integer;
-  ApplicationName: String;
-  Roles: String;
-  EMailAddress: String;
-  PasswordHash: String;
 
   OldJWT: String;
   JWT: TJWT;
   JWTString: String;
   IssuedAt: TDateTime;
   ExpiresAt: TDateTime;
+  Roles: String;
 
   User: IUserIdentity;
 begin
@@ -564,7 +671,7 @@ begin
     raise EXDataHttpUnauthorized.Create('JWT was not validated');
   end;
 
-  // Ok, we've got a person, let's see if they've got the required Login role
+  // Let's see if they've (still) got the required Login role
   try
     {$Include sql\system\person_role_check\person_role_check.inc}
     Query1.ParamByName('PERSONID').AsInteger := User.Claims.Find('usr').asInteger;
@@ -580,6 +687,21 @@ begin
   begin
     DBSupport.DisconnectQuery(DBConn, Query1);
     raise EXDataHttpUnauthorized.Create('Login not authorized');
+  end;
+
+  // Login role is present, so let's make a note of the other roles
+  Roles := '';
+  while not(Query1.EOF) do
+  begin
+    Roles := Roles + Query1.FieldByName('role_id').AsString;
+
+    // Limit token validity of role expires before token expires
+    if not(Query1.FieldByName('valid_until').isNull) and
+       (ExpiresAt > TTimeZone.Local.ToLocalTIme(Query1.FieldByName('valid_until').AsDateTime))
+    then ExpiresAt := TTimeZone.Local.ToLocalTime(Query1.FieldByName('valid_until').AsDateTime);
+
+    Query1.Next;
+    if not(Query1.EOF) then Roles := Roles + ',';
   end;
 
   // Check if we've got a valid JWT (one that has not been revoked)
@@ -616,19 +738,19 @@ begin
   try
     // Setup some Claims
     JWT.Claims.Issuer := MainForm.AppName;
-    JWT.Claims.SetClaimOfType<string>( 'ver', User.Claims.Find('ver').asString);
-    JWT.Claims.SetClaimOfType<string>( 'tzn', User.Claims.Find('tzn').asString);
+    JWT.Claims.SetClaimOfType<string>( 'ver', User.Claims.Find('ver').asString );
+    JWT.Claims.SetClaimOfType<string>( 'tzn', User.Claims.Find('tzn').asString );
     JWT.Claims.SetClaimOfType<integer>('usr', User.Claims.Find('usr').asInteger);
-    JWT.Claims.SetClaimOfType<string>( 'app', User.Claims.Find('app').asString);
-    JWT.Claims.SetClaimOfType<string>( 'dbn', User.Claims.Find('dbn').asString);
-    JWT.Claims.SetClaimOfType<string>( 'dbe', User.Claims.Find('dbe').asString);
-    JWT.Claims.SetClaimOfType<string>( 'rol', User.Claims.Find('rol').asString);
-    JWT.Claims.SetClaimOfType<string>( 'eml', User.Claims.Find('eml').asString);
-    JWT.Claims.SetClaimOfType<string>( 'fnm', User.Claims.Find('fnm').asString);
-    JWT.Claims.SetClaimOfType<string>( 'mnm', User.Claims.Find('mnm').asString);
-    JWT.Claims.SetClaimOfType<string>( 'lnm', User.Claims.Find('lnm').asString);
-    JWT.Claims.SetClaimOfType<string>( 'anm', User.Claims.Find('anm').asString);
-    JWT.Claims.SetClaimOfType<string>( 'net', User.Claims.Find('net').asString);
+    JWT.Claims.SetClaimOfType<string>( 'app', User.Claims.Find('app').asString );
+    JWT.Claims.SetClaimOfType<string>( 'dbn', User.Claims.Find('dbn').asString );
+    JWT.Claims.SetClaimOfType<string>( 'dbe', User.Claims.Find('dbe').asString );
+    JWT.Claims.SetClaimOfType<string>( 'rol', Roles );
+    JWT.Claims.SetClaimOfType<string>( 'eml', User.Claims.Find('eml').asString );
+    JWT.Claims.SetClaimOfType<string>( 'fnm', User.Claims.Find('fnm').asString );
+    JWT.Claims.SetClaimOfType<string>( 'mnm', User.Claims.Find('mnm').asString );
+    JWT.Claims.SetClaimOfType<string>( 'lnm', User.Claims.Find('lnm').asString );
+    JWT.Claims.SetClaimOfType<string>( 'anm', User.Claims.Find('anm').asString );
+    JWT.Claims.SetClaimOfType<string>( 'net', User.Claims.Find('net').asString );
     JWT.Claims.SetClaimOfType<string>( 'aft', FormatDateTime('yyyy-mm-dd hh:nn:ss.zzz',  TTimeZone.local.ToUniversalTime(IssuedAt))+' UTC');
     JWT.Claims.SetClaimOfType<string>( 'unt', FormatDateTime('yyyy-mm-dd hh:nn:ss.zzz',  TTimeZone.local.ToUniversalTime(ExpiresAt))+' UTC');
     JWT.Claims.SetClaimOfType<integer>('iat', DateTimeToUnix(TTimeZone.local.ToUniversalTime(IssuedAt)));
@@ -659,13 +781,33 @@ begin
     end;
   end;
 
+  // Record Action History
+  try
+    {$Include sql\system\action_history_insert\action_history_insert.inc}
+    Query1.ParamByName('PERSONID').AsInteger := User.Claims.Find('usr').asInteger;
+    Query1.ParamByName('IPADDRESS').AsString := TXDataOperationContext.Current.Request.RemoteIP;
+    Query1.ParamByName('APPLICATION').AsString := User.Claims.Find('app').asString;
+    Query1.ParamByName('VERSION').AsString := User.Claims.Find('ver').asString;
+    Query1.ParamByName('ACCESSED').AsDateTime := TTimeZone.local.ToUniversalTime(ElapsedTime);
+    Query1.ParamByName('ACTIONS').AsString := ActionLog;
+    Query1.ExecSQL;
+  except on E: Exception do
+    begin
+      DBSupport.DisconnectQuery(DBConn, Query1);
+      MainForm.mmInfo.Lines.Add('['+E.Classname+'] '+E.Message);
+      raise EXDataHttpUnauthorized.Create('Internal Error: EHI');
+    end;
+  end;
+
   // Keep track of endpoint history
   try
     {$Include sql\system\endpoint_history_insert\endpoint_history_insert.inc}
+    Query1.ParamByName('PERSONID').AsInteger := User.Claims.Find('usr').asInteger;
     Query1.ParamByName('ENDPOINT').AsString := 'SystemService.Renew';
     Query1.ParamByName('ACCESSED').AsDateTime := TTimeZone.local.ToUniversalTime(ElapsedTime);
     Query1.ParamByName('IPADDRESS').AsString := TXDataOperationContext.Current.Request.RemoteIP;
     Query1.ParamByName('APPLICATION').AsString := User.Claims.Find('app').asString;
+    Query1.ParamByName('VERSION').AsString := User.Claims.Find('ver').asString;
     Query1.ParamByName('DATABASENAME').AsString := User.Claims.Find('dbn').asString;
     Query1.ParamByName('DATABASEENGINE').AsString := User.Claims.Find('dbe').asString;
     Query1.ParamByName('EXECUTIONMS').AsInteger := MillisecondsBetween(Now,ElapsedTime);
