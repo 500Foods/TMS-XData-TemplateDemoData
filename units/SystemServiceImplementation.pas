@@ -44,7 +44,8 @@ implementation
 uses Unit1, Unit2, Unit3, TZDB;
 
 const
-  JWT_PERIOD = 2;  // How long a JWT is valid for, in minutes
+//  JWT_PERIOD = 2;  // How long a JWT is valid for, in minutes
+  JWT_PERIOD = 15;  // How long a JWT is valid for, in minutes
 
 function TSystemService.Info(TZ: String):TStream;
 var

@@ -78,7 +78,7 @@ type
     ///  <param name="ActionLog">
     ///    Client action log.
     ///  </param>
-    [HttpGet] function Logout(ActionLog: String):TStream;
+    [HttpPost] function Logout(ActionLog: String):TStream;
 
     ///  <summary>
     ///    Renew a previously issued JWT.
@@ -90,7 +90,7 @@ type
     ///  <param name="ActionLog">
     ///    Client action log.
     ///  </param>
-    [HttpGet] function Renew(ActionLog: String):TStream;
+    [HttpPost] function Renew(ActionLog: String):TStream;
   end;
 
 implementation
