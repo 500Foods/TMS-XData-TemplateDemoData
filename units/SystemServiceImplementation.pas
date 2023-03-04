@@ -505,7 +505,7 @@ var
   User: IUserIdentity;
 begin
   // Returning JWT, so flag it as such
-  TXDataOperationContext.Current.Response.Headers.SetValue('content-type', 'application/jwt');
+  TXDataOperationContext.Current.Response.Headers.SetValue('content-type', 'application/json');
 
   // Time this event
   ElapsedTime := Now;
@@ -607,6 +607,7 @@ begin
     end;
   end;
 
+  Result := TStringStream.Create('{"Message":"Logout Complete"}');
 end;
 
 function TSystemService.Renew(ActionLog: String): TStream;
