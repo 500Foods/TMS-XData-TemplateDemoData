@@ -153,10 +153,10 @@ begin
   ExpiresAt := IncMinute(IssuedAt, JWT_PERIOD);
 
   // Check that we've got values for all of the above.
-  if Trim(Login_ID) = '' then raise EXDataHttpUnauthorized.Create('Username cannot be blank');
-  if Trim(Password) = '' then raise EXDataHttpUnauthorized.Create('Password cannot be blank');
-  if Trim(API_Key) = '' then raise EXDataHttpUnauthorized.Create('API Key cannot be blank');
-  if Trim(TZ) = '' then raise EXDataHttpUnauthorized.Create('TZ cannot be blank');
+  if Trim(Login_ID) = '' then raise EXDataHttpUnauthorized.Create('Username cannot be blank.');
+  if Trim(Password) = '' then raise EXDataHttpUnauthorized.Create('Password cannot be blank.');
+  if Trim(API_Key) = '' then raise EXDataHttpUnauthorized.Create('API Key cannot be blank.');
+  if Trim(TZ) = '' then raise EXDataHttpUnauthorized.Create('Timezone cannot be blank.');
 
   // Figure out if we have a valid TZ
   try
@@ -176,7 +176,7 @@ begin
       end;
     end;
   end;
-  if not(ValidTimeZone) then raise EXDataHttpUnauthorized.Create('Invalid TZ');
+  if not(ValidTimeZone) then raise EXDataHttpUnauthorized.Create('Invalid Timezone.');
 
   // Setup DB connection and query
   DatabaseName := MainForm.DatabaseName;
@@ -206,7 +206,7 @@ begin
   if Query1.RecordCount = 0 then
   begin
     DBSupport.DisconnectQuery(DBConn, Query1);
-    raise EXDataHttpUnauthorized.Create('API_Key was not validated');
+    raise EXDataHttpUnauthorized.Create('API_Key was not validated.');
   end;
   ApplicationName := Query1.FieldByName('application').AsString;
   if not(Query1.FieldByName('valid_until').isNull) and
@@ -224,7 +224,7 @@ begin
         {$Include sql\system\ip_block_check\ip_block_check.inc}
         Query1.ParamByName('IPADDRESS').AsString := TXDataOperationContext.Current.Request.RemoteIP;
         Query1.Open;
-        if Query1.RecordCount > 0 then raise EXDataHttpUnauthorized.Create('IP Address has been temporarily blocked')
+        if Query1.RecordCount > 0 then raise EXDataHttpUnauthorized.Create('IP Address has been blocked temporarily.')
       except on E: Exception do
         begin
     DBSupport.DisconnectQuery(DBConn, Query1);
@@ -298,12 +298,12 @@ begin
   if Query1.RecordCount = 0 then
   begin
     DBSupport.DisconnectQuery(DBConn, Query1);
-    raise EXDataHttpUnauthorized.Create('Login not authenticated: invalid login')
+    raise EXDataHttpUnauthorized.Create('Login not authenticated: Invalid Username.')
   end
   else if Query1.RecordCount > 1 then
   begin
     DBSupport.DisconnectQuery(DBConn, Query1);
-    EXDataHttpUnauthorized.Create('Login not authenticated: ambiguous login');
+    EXDataHttpUnauthorized.Create('Login not authenticated: Ambiguous Login.');
   end;
 
   // Got the Person ID
@@ -324,7 +324,7 @@ begin
   if Query1.FieldByName('role_id').AsInteger <> 0 then
   begin
     DBSupport.DisconnectQuery(DBConn, Query1);
-    raise EXDataHttpUnauthorized.Create('Login not authorized');
+    raise EXDataHttpUnauthorized.Create('Login not authorized for this Username.');
   end;
 
   // Login role is present, so let's make a note of the other roles
@@ -375,7 +375,7 @@ begin
   if Query1.RecordCount <> 1 then
   begin
     DBSupport.DisconnectQuery(DBConn, Query1);
-    raise EXDataHttpUnauthorized.Create('Login not authenticated: invalid password');
+    raise EXDataHttpUnauthorized.Create('Login not authenticated: Invalid Password');
   end;
 
   // Login has been authenticated and authorized.
