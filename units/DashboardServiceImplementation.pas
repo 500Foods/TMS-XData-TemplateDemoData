@@ -97,7 +97,7 @@ begin
   GotRole := False;
   while i < Roles.Count do
   begin
-    if Roles[1] = '1' then GotRole := True;
+    if Roles[i] = '1' then GotRole := True;
     i := i + 1;
   end;
   Roles.Free;
