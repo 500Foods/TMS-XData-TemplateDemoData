@@ -776,6 +776,7 @@ begin
     Query1.ParamByName('VALIDAFTER').AsDateTime := TTimeZone.local.ToUniversalTime(IssuedAt);
     Query1.ParamByName('VALIDUNTIL').AsDateTime := TTimeZone.local.ToUniversalTime(ExpiresAt);
     Query1.ParamByName('APPLICATION').AsString := User.Claims.Find('app').asString;
+    Query1.ParamByName('VERSION').AsString := User.Claims.Find('ver').asString;
     Query1.ExecSQL;
   except on E: Exception do
     begin
