@@ -29,6 +29,15 @@ type
     ///  </param>
     [Authorize] [HttpGet] function Directory(Format: String): TStream;
 
+    ///  <summary>
+    ///    Return user profile information.
+    ///  </summary>
+    ///  <remarks>
+    ///    The profile information is returned as JSONbased on the person that is
+    ///    logged in - the JWT is used to determine the person_id.
+    ///  </remarks>
+    [Authorize] [HttpGet] function Profile: TStream;
+
   end;
 
 implementation

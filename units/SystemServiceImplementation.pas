@@ -419,6 +419,7 @@ begin
     Query1.ParamByName('VALIDAFTER').AsDateTime := TTimeZone.local.ToUniversalTime(IssuedAt);
     Query1.ParamByName('VALIDUNTIL').AsDateTime := TTimeZone.local.ToUniversalTime(ExpiresAt);
     Query1.ParamByName('APPLICATION').AsString := ApplicationName;
+    Query1.ParamByName('VERSION').AsString := MainForm.AppVersion;
     Query1.ExecSQL;
   except on E: Exception do
     begin
@@ -435,6 +436,7 @@ begin
     Query1.ParamByName('IPADDRESS').AsString := TXDataOperationContext.Current.Request.RemoteIP;
     Query1.ParamByName('PERSONID').AsInteger := PersonID;
     Query1.ParamByName('APPLICATION').AsString := ApplicationName;
+    Query1.ParamByName('VERSION').AsString := MainForm.AppVersion;
     Query1.ExecSQL;
   except on E: Exception do
     begin

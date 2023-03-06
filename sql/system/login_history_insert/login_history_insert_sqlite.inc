@@ -9,12 +9,13 @@ begin
     SQL.Clear;
     SQL.Add('insert into '+
             '  login_history '+
-            '    (logged_in, person_id, ip_address, application) '+
+            '    (logged_in, person_id, ip_address, application, version ) '+
             'values( '+
             '  :LOGGEDIN, '+
             '  :PERSONID, '+
             '  :IPADDRESS, '+
-            '  :APPLICATION '+
+            '  :APPLICATION, '+
+            '  :VERSION '+
             ');'
            );
 

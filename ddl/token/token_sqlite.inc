@@ -14,7 +14,8 @@ begin
             '  valid_after                text        NOT NULL, '+
             '  valid_until                text        NOT NULL, '+
             '  person_id                  integer     NOT NULL, '+
-            '  application                integer     NOT NULL, '+
+            '  application                text        NOT NULL, '+
+            '  version                    text        NOT NULL, '+
             '  CONSTRAINT constraint_name PRIMARY KEY (token_hash) '+
             ');'
            );
