@@ -15,7 +15,7 @@ begin
             '  p.account_name, '+
             '  p.last_modified, '+
             '  p.last_modifier, '+
-            '  m.account_name '+
+            '  m.account_name last_modifier_account '+
             'FROM '+
             '  person p '+
             '  LEFT OUTER JOIN '+

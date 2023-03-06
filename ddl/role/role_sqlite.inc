@@ -28,11 +28,10 @@ begin
       SQL.Clear;
 
       // Default roles
-      SQL.Add('insert into role values( 0, Datetime("now"), 0, "Login",         "<i class=""fa-solid fa-right-to-braket""></i>" );');
-      SQL.Add('insert into role values( 1, Datetime("now"), 0, "Administrator", "<i class=""fa-solid fa-user-gear""></i>"       );');
-      SQL.Add('insert into role values( 2, Datetime("now"), 0, "Manager",       "<i class=""fa-solid fa-user-clock""></i>"      );');
-      SQL.Add('insert into role values( 3, Datetime("now"), 0, "Supervisor",    "<i class=""fa-solid fa-user-tag""></i>"        );');
-      SQL.Add('insert into role values( 4, Datetime("now"), 0, "Worker",        "<i class=""fa-solid fa-user""></i>"            );');
+      SQL.Add('insert into role values( 0, Datetime("now"), 0, "Login",         ":Login" );');
+      SQL.Add('insert into role values( 1, Datetime("now"), 0, "Administrator", ":Administrator" );');
+      SQL.Add('insert into role values( 2, Datetime("now"), 0, "People",        ":People" );');
+      SQL.Add('insert into role values( 3, Datetime("now"), 0, "Labels",        ":Labels" );');
 
       ExecSQL;
     end;

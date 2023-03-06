@@ -33,21 +33,23 @@ begin
       SQL.Add('insert into list values( 0, 1, Datetime("now"), 0, 1, "Contact Types", "");');
       SQL.Add('insert into list values( 0, 2, Datetime("now"), 0, 2, "Organization Info", "");');
       SQL.Add('insert into list values( 0, 3, Datetime("now"), 0, 2, "Photo Types", "");');
+      SQL.Add('insert into list values( 0, 4, Datetime("now"), 0, 2, "Custom Icons", "");');
 
 
       // Contact Types
-      SQL.Add('insert into list values( 1,  0, Datetime("now"), 0,  0, "Login Name",         "<i class=""fa-solid fa-right-to-bracket""></i>");');
-      SQL.Add('insert into list values( 1,  1, Datetime("now"), 0,  1, "E-Mail Address",     "<i class=""fa-solid fa-envelope""></i>");');
-      SQL.Add('insert into list values( 1,  2, Datetime("now"), 0,  2, "Telephone (Work)",   "<i class=""fa-solid fa-phone""></i>");');
-      SQL.Add('insert into list values( 1,  3, Datetime("now"), 0,  3, "Telephone (Mobile)", "<i class=""fa-solid fa-mobile-retro""></i>");');
-      SQL.Add('insert into list values( 1,  4, Datetime("now"), 0,  4, "Telephone (Home)",   "<i class=""fa-solid fa-phonel""></i>");');
-      SQL.Add('insert into list values( 1,  5, Datetime("now"), 0,  5, "Fax Machine (Work)", "<i class=""fa-solid fa-fax""></i>");');
-      SQL.Add('insert into list values( 1,  6, Datetime("now"), 0,  6, "Fax Machine (Home)", "<i class=""fa-solid fa-fax""></i>");');
-      SQL.Add('insert into list values( 1,  7, Datetime("now"), 0,  7, "Facebook",           "<i class=""fa-brands fa-facebook""></i>");');
-      SQL.Add('insert into list values( 1,  8, Datetime("now"), 0,  8, "Twitter",            "<i class=""fa-brands fa-twitter""></i>");');
-      SQL.Add('insert into list values( 1,  9, Datetime("now"), 0,  9, "Instagram",          "<i class=""fa-brands fa-instagram""></i>");');
-      SQL.Add('insert into list values( 1, 10, Datetime("now"), 0,  10, "Work Address",      "<i class=""fa-solid fa-address-book""></i>");');
-      SQL.Add('insert into list values( 1, 11, Datetime("now"), 0,  11, "Home Address",      "<i class=""fa-regular fa-address-book""></i>");');
+      SQL.Add('insert into list values( 1,  0, Datetime("now"), 0,  0, "Login Name",            ":Login");');
+      SQL.Add('insert into list values( 1,  1, Datetime("now"), 0,  1, "E-Mail Address (Work)", ":EMail");');
+      SQL.Add('insert into list values( 1,  2, Datetime("now"), 0,  2, "E-Mail Address (Home)", ":EMailHome");');
+      SQL.Add('insert into list values( 1,  3, Datetime("now"), 0,  3, "Telephone (Work)",      ":Telephone");');
+      SQL.Add('insert into list values( 1,  4, Datetime("now"), 0,  4, "Telephone (Mobile)",    ":TelephoneMobile");');
+      SQL.Add('insert into list values( 1,  5, Datetime("now"), 0,  5, "Telephone (Home)",      ":TelephoneHome");');
+      SQL.Add('insert into list values( 1,  6, Datetime("now"), 0,  6, "Fax Machine (Work)",    ":Fax");');
+      SQL.Add('insert into list values( 1,  7, Datetime("now"), 0,  7, "Fax Machine (Home)",    ":FaxHome");');
+      SQL.Add('insert into list values( 1,  8, Datetime("now"), 0,  8, "Facebook",              ":Facebook");');
+      SQL.Add('insert into list values( 1,  9, Datetime("now"), 0,  9, "Twitter",               ":Twitter");');
+      SQL.Add('insert into list values( 1, 10, Datetime("now"), 0, 10, "Instagram",             ":Instagram");');
+      SQL.Add('insert into list values( 1, 11, Datetime("now"), 0, 11, "Address (Work)",        ":Address");');
+      SQL.Add('insert into list values( 1, 12, Datetime("now"), 0, 12, "Address (Home)",        ":AddressWork");');
 
       // Organization Info
       SQL.Add('insert into list values( 2,  0, Datetime("now"), 0,  0, "TMS WEB Core/XData Template", "Organization Name");');
@@ -56,8 +58,8 @@ begin
       SQL.Add('insert into list values( 2,  3, Datetime("now"), 0,  3, "Copyright (c) 2023", "Copyright Notice");');
 
       // Photo Types
-      SQL.Add('insert into list values( 3,  0, Datetime("now"), 0,  0, "Photo (Large)", "<i class=""fa-solid fa-user""></i>");');
-      SQL.Add('insert into list values( 3,  1, Datetime("now"), 1,  0, "Photo (Thumbnail)", "<i class=""fa-solid fa-user""></i>");');
+      SQL.Add('insert into list values( 3,  0, Datetime("now"), 0,  0, "Photo (Large)", ":User");');
+      SQL.Add('insert into list values( 3,  1, Datetime("now"), 1,  0, "Photo (Thumbnail)", ":User");');
 
       ExecSQL;
     end;

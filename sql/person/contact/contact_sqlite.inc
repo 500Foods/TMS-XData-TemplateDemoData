@@ -15,9 +15,9 @@ begin
             '  c.value, '+
             '  c.preference, '+
             '  c.login_use, '+
-            '  m.account_name, '+
-            '  l.value, '+
-            '  l.attributes '+
+            '  m.account_name last_modifier_account, '+
+            '  l.value contact_type, '+
+            '  l.attributes contact_attributes '+
             'FROM '+
             '  contact c '+
             '  LEFT OUTER JOIN '+

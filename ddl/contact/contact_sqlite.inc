@@ -36,7 +36,7 @@ begin
       // SYSINSTALLER
       SQL.Add('insert into contact values( 0, 0, Datetime("now"), 0, 0, "SYSINSTALLER", 0, 1 );');
 
-      // Add email logins for all users
+      // Add E-Mail (with login ability) for all users
       SQL.Add('insert into contact  '+
               '  select '+
               '    person_id, '+
@@ -47,6 +47,48 @@ begin
               '    lower(account_name) || "@company.com", '+
               '    0, '+
               '    1 '+
+              '  from person;'
+            );
+
+      // Add Telephone (Work) (without login ability) for all users
+      SQL.Add('insert into contact  '+
+              '  select '+
+              '    person_id, '+
+              '    2, '+
+              '    Datetime("now"), '+
+              '    0, '+
+              '    3, '+
+              '    "(" || cast(abs(random() % 899)+100 as TEXT) || ") " || cast(abs(random() % 899)+100 as TEXT) || "-" || cast(abs(random() % 8999)+1000 as TEXT), '+
+              '    1, '+
+              '    0 '+
+              '  from person;'
+            );
+
+      // Add Telephone (Mobile) (without login ability) for all users
+      SQL.Add('insert into contact  '+
+              '  select '+
+              '    person_id, '+
+              '    3, '+
+              '    Datetime("now"), '+
+              '    0, '+
+              '    4, '+
+              '    "(" || cast(abs(random() % 899)+100 as TEXT) || ") " || cast(abs(random() % 899)+100 as TEXT) || "-" || cast(abs(random() % 8999)+1000 as TEXT), '+
+              '    2, '+
+              '    0 '+
+              '  from person;'
+            );
+
+      // Add Telephone (Home) (without login ability) for all users
+      SQL.Add('insert into contact  '+
+              '  select '+
+              '    person_id, '+
+              '    4, '+
+              '    Datetime("now"), '+
+              '    0, '+
+              '    5, '+
+              '    "(" || cast(abs(random() % 899)+100 as TEXT) || ") " || cast(abs(random() % 899)+100 as TEXT) || "-" || cast(abs(random() % 8999)+1000 as TEXT), '+
+              '    3, '+
+              '    0 '+
               '  from person;'
             );
 

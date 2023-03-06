@@ -13,7 +13,7 @@ begin
             '  pr.valid_until, '+
             '  pr.last_modified, '+
             '  pr.last_modifier, '+
-            '  m.account_name, '+
+            '  m.account_name last_modifier_account, '+
             '  r.name, '+
             '  r.icon '+
             'FROM '+

@@ -27,9 +27,12 @@ begin
     begin
       SQL.Clear;
 
-      // Grant System Installer the role of Login, Administrator
+      // Grant System Installer the role of Login(0), Administrator(1), People(2), and Labels(3)
       SQL.Add('insert into person_role values( 0, 0, Datetime("now"), Datetime("now", "+100 years"), Datetime("now"), 0);');
       SQL.Add('insert into person_role values( 0, 1, Datetime("now"), Datetime("now", "+100 years"), Datetime("now"), 0);');
+      SQL.Add('insert into person_role values( 0, 2, Datetime("now"), Datetime("now", "+100 years"), Datetime("now"), 0);');
+      SQL.Add('insert into person_role values( 0, 3, Datetime("now"), Datetime("now", "+100 years"), Datetime("now"), 0);');
+
 
       ExecSQL;
     end;
