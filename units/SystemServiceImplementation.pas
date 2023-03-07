@@ -726,16 +726,16 @@ begin
   end;
 
   // Revoke JWT
-  try
-    {$Include sql\system\token_revoke\token_revoke.inc}
-    Query1.ParamByName('TOKENHASH').AsString := DBSupport.HashThis(OldJWT);
-    Query1.ExecSQL;
-  except on E: Exception do
-    begin
-      MainForm.mmInfo.Lines.Add('['+E.Classname+'] '+E.Message);
-      raise EXDataHttpUnauthorized.Create('Internal Error: TR');
-    end;
-  end;
+//  try
+//    {$Include sql\system\token_revoke\token_revoke.inc}
+//    Query1.ParamByName('TOKENHASH').AsString := DBSupport.HashThis(OldJWT);
+//    Query1.ExecSQL;
+//  except on E: Exception do
+//    begin
+//      MainForm.mmInfo.Lines.Add('['+E.Classname+'] '+E.Message);
+//      raise EXDataHttpUnauthorized.Create('Internal Error: TR');
+//    end;
+//  end;
 
   // Generate a new JWT
   JWT := TJWT.Create;
