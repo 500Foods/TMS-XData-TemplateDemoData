@@ -75,10 +75,13 @@ type
     ///    The JWT issued by the Login endpoint is good for a set period of time.  This will revoke
     ///    the JWT, making it invalid immediately rather than when it expires after a period of time.
     ///  </remarks>
-    ///  <param name="ActionLog">
-    ///    Client action log.
+    ///  <param name="ActionSession">
+    ///    Session identifier unique to the user - just an encoded Unix timestamp.
     ///  </param>
-    [HttpPost] function Logout(ActionLog: String):TStream;
+    ///  <param name="ActionLog">
+    ///    Client action log. Just a text log.
+    ///  </param>
+    [HttpPost] function Logout(ActionSession: String; ActionLog: String):TStream;
 
     ///  <summary>
     ///    Renew a previously issued JWT.
@@ -87,10 +90,13 @@ type
     ///    The JWT issued by the Login endpoint is good for a set period of time.
     ///    This endpoint will re-issue a new JWT with the same claims for another period of time.
     ///  </remarks>
-    ///  <param name="ActionLog">
-    ///    Client action log.
+    ///  <param name="ActionSession">
+    ///    Session identifier unique to the user - just an encoded Unix timestamp.
     ///  </param>
-    [HttpPost] function Renew(ActionLog: String):TStream;
+    ///  <param name="ActionLog">
+    ///    Client action log. Just a text log.
+    ///  </param>
+    [HttpPost] function Renew(ActionSession: String; ActionLog: String):TStream;
   end;
 
 implementation

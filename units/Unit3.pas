@@ -6,6 +6,8 @@ uses
   System.SysUtils,
   System.Classes,
   System.NetEncoding,
+  System.Math,
+  System.DateUtils,
 
   XData.Server.Module,
   XData.Service.Common,
@@ -40,6 +42,7 @@ type
     function HashThis(InputText: String):String;
     procedure Export(Format: String; QueryResult: TFDQuery; var OutputStream: TStream);
     function QueryToJSON(QueryResult: TFDQuery): String;
+    function DecodeSession(s: String):TDateTime;
   end;
 
 var
@@ -266,6 +269,55 @@ begin
       Mainform.mmInfo.Lines.Add('[ '+E.ClassName+' ] '+E.Message);
     end;
   end;
+end;
+
+function TDBSupport.DecodeSession(s: String): TDateTime;
+var
+  i: Double;
+  ex: INteger;
+
+const
+  c: TArray<String> = ['B','b','C','c','D','d','F','f','G','g','H','h','J','j','K','k','L','M','m','N','n','P','p','Q','q','R','r','S','s','T','t','V','W','w','X','x','Z','z','0','1','2','3','4','5','6','7','8','9'];
+
+  function findc(s: String): Integer;
+  var
+    j: integer;
+  begin
+    Result := -1;
+    j := 0;
+    while j < length(c) do
+    begin
+      if c[j] = s then result := j;
+      j := j + 1;
+    end;
+  end;
+
+begin
+  // https://github.com/marko-36/base29-shortener
+
+  // This decodes a custom Base-48 encoded string back into an integer.
+  // This is used to pass the action log session id which is just the
+  // app start time in UTC as a unix datetime format.  Why?  So we
+  // get a nice short session id that we can use without being as
+  // burdensome as something like a GUID.
+
+  // JavaScript:
+  //      i = 0;
+  //      for (var ex=0; ex<s.length; ++ex){
+  //        i += c.indexOf(s.substring(ex,ex+1)) * Math.pow(c.length,s.length-1-ex);
+  //      }
+  //      return i;
+
+  i := 0;
+  ex := 0;
+  while  ex < Length(s) do
+  begin
+    i := i + findc(Copy(s,ex+1,1)) * Power(Length(c), Length(s) - 1 - ex);
+    ex := ex + 1;
+  end;
+
+  Result := UnixToDateTime(Trunc(i));
+
 end;
 
 procedure TDBSupport.DisconnectQuery(var conn: TFDConnection; var qry: TFDQuery);

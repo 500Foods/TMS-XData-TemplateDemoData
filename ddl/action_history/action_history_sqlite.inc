@@ -14,7 +14,9 @@ begin
             '  ip_address                 text        NOT NULL, '+
             '  application                text        NOT NULL, '+
             '  version                    text        NOT NULL, '+
-            '  accessed                   text        NOT NULL, '+
+            '  session_id                 text        NOT NULL, '+
+            '  session_start              text        NOT NULL, '+
+            '  session_recorded           text        NOT NULL, '+
             '  actions                    text        NOT NULL '+
             ');'
            );

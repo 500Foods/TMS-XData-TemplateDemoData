@@ -35,8 +35,8 @@ type
 
     function Info(TZ: String):TStream;
     function Login(Login_ID: String; Password: String; API_Key: String; TZ: String):TStream;
-    function Logout(ActionLog: String):TStream;
-    function Renew(ActionLog: String):TStream;
+    function Logout(ActionSession: String; ActionLog: String):TStream;
+    function Renew(ActionSession: String; ActionLog: String):TStream;
   end;
 
 implementation
@@ -495,7 +495,7 @@ begin
 
 end;
 
-function TSystemService.Logout(ActionLog: String): TStream;
+function TSystemService.Logout(ActionSession: String; ActionLog: String): TStream;
 var
   DBConn: TFDConnection;
   Query1: TFDQuery;
@@ -567,7 +567,9 @@ begin
     Query1.ParamByName('IPADDRESS').AsString := TXDataOperationContext.Current.Request.RemoteIP;
     Query1.ParamByName('APPLICATION').AsString := User.Claims.Find('app').asString;
     Query1.ParamByName('VERSION').AsString := User.Claims.Find('ver').asString;
-    Query1.ParamByName('ACCESSED').AsDateTime := TTimeZone.local.ToUniversalTime(ElapsedTime);
+    Query1.ParamByName('SESSIONID').AsString := ActionSession;
+    Query1.ParamByName('SESSIONSTART').AsDateTime := DBSupport.DecodeSession(ActionSession);
+    Query1.ParamByName('SESSIONRECORDED').AsDateTime := TTimeZone.local.ToUniversalTime(Now);
     Query1.ParamByName('ACTIONS').AsString := ActionLog;
     Query1.ExecSQL;
   except on E: Exception do
@@ -613,7 +615,7 @@ begin
   Result := TStringStream.Create('{"Message":"Logout Complete"}');
 end;
 
-function TSystemService.Renew(ActionLog: String): TStream;
+function TSystemService.Renew(ActionSession: String; ActionLog: String): TStream;
 var
   DBConn: TFDConnection;
   Query1: TFDQuery;
@@ -793,14 +795,16 @@ begin
     Query1.ParamByName('IPADDRESS').AsString := TXDataOperationContext.Current.Request.RemoteIP;
     Query1.ParamByName('APPLICATION').AsString := User.Claims.Find('app').asString;
     Query1.ParamByName('VERSION').AsString := User.Claims.Find('ver').asString;
-    Query1.ParamByName('ACCESSED').AsDateTime := TTimeZone.local.ToUniversalTime(ElapsedTime);
+    Query1.ParamByName('SESSIONID').AsString := ActionSession;
+    Query1.ParamByName('SESSIONSTART').AsDateTime := DBSupport.DecodeSession(ActionSession);
+    Query1.ParamByName('SESSIONRECORDED').AsDateTime := TTimeZone.local.ToUniversalTime(Now);
     Query1.ParamByName('ACTIONS').AsString := ActionLog;
     Query1.ExecSQL;
   except on E: Exception do
     begin
       DBSupport.DisconnectQuery(DBConn, Query1);
       MainForm.mmInfo.Lines.Add('['+E.Classname+'] '+E.Message);
-      raise EXDataHttpUnauthorized.Create('Internal Error: EHI');
+      raise EXDataHttpUnauthorized.Create('Internal Error: AH');
     end;
   end;
 

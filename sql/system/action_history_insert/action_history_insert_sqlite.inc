@@ -9,13 +9,15 @@ begin
     SQL.Clear;
     SQL.Add('insert into '+
             '  action_history '+
-            '    (person_id, ip_address, application, version, accessed, actions) '+
+            '    (person_id, ip_address, application, version, session_id, session_start, session_recorded, actions) '+
             'values( '+
             '  :PERSONID, '+
             '  :IPADDRESS, '+
             '  :APPLICATION, '+
             '  :VERSION, '+
-            '  :ACCESSED, '+
+            '  :SESSIONID, '+
+            '  :SESSIONSTART, '+
+            '  :SESSIONRECORDED, '+
             '  :ACTIONS '+
             ');'
            );
