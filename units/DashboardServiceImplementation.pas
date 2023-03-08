@@ -81,6 +81,7 @@ begin
   try
     {$Include sql\system\token_check\token_check.inc}
     Query1.ParamByName('TOKENHASH').AsString := DBSupport.HashThis(JWT);
+    Query1.ParamByName('IPADDRESS').AsString := TXDataOperationContext.Current.Request.RemoteIP;
     Query1.Open;
   except on E: Exception do
     begin

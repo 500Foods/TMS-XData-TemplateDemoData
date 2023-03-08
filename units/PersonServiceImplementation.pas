@@ -75,6 +75,7 @@ begin
   try
     {$Include sql\system\token_check\token_check.inc}
     Query1.ParamByName('TOKENHASH').AsString := DBSupport.HashThis(JWT);
+    Query1.ParamByName('IPADDRESS').AsString := TXDataOperationContext.Current.Request.RemoteIP;
     Query1.Open;
   except on E: Exception do
     begin
@@ -149,9 +150,6 @@ var
   JWT: String;
   ResultJSON: TJSONObject;
   ResultArray: TJSONArray;
-  Roles: TStringList;
-  GotRole: Boolean;
-  i: Integer;
 begin
   // Returning JSON, so flag it as such
   TXDataOperationContext.Current.Response.Headers.SetValue('content-type', 'application/json');
@@ -180,6 +178,7 @@ begin
   try
     {$Include sql\system\token_check\token_check.inc}
     Query1.ParamByName('TOKENHASH').AsString := DBSupport.HashThis(JWT);
+    Query1.ParamByName('IPADDRESS').AsString := TXDataOperationContext.Current.Request.RemoteIP;
     Query1.Open;
   except on E: Exception do
     begin

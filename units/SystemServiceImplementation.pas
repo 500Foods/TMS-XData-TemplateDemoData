@@ -420,6 +420,7 @@ begin
     Query1.ParamByName('VALIDUNTIL').AsDateTime := TTimeZone.local.ToUniversalTime(ExpiresAt);
     Query1.ParamByName('APPLICATION').AsString := ApplicationName;
     Query1.ParamByName('VERSION').AsString := MainForm.AppVersion;
+    Query1.ParamByName('IPADDRESS').AsString := TXDataOperationContext.Current.Request.RemoteIP;
     Query1.ExecSQL;
   except on E: Exception do
     begin
@@ -535,6 +536,7 @@ begin
   try
     {$Include sql\system\token_check\token_check.inc}
     Query1.ParamByName('TOKENHASH').AsString := DBSupport.HashThis(OldJWT);
+    Query1.ParamByName('IPADDRESS').AsString := TXDataOperationContext.Current.Request.RemoteIP;
     Query1.Open;
   except on E: Exception do
     begin
@@ -664,6 +666,7 @@ begin
   try
     {$Include sql\system\token_check\token_check.inc}
     Query1.ParamByName('TOKENHASH').AsString := DBSupport.HashThis(OldJWT);
+    Query1.ParamByName('IPADDRESS').AsString := TXDataOperationContext.Current.Request.RemoteIP;
     Query1.Open;
   except on E: Exception do
     begin
@@ -714,6 +717,7 @@ begin
   try
     {$Include sql\system\token_check\token_check.inc}
     Query1.ParamByName('TOKENHASH').AsString := DBSupport.HashThis(OldJWT);
+    Query1.ParamByName('IPADDRESS').AsString := TXDataOperationContext.Current.Request.RemoteIP;
     Query1.Open;
   except on E: Exception do
     begin
@@ -779,6 +783,7 @@ begin
     Query1.ParamByName('VALIDUNTIL').AsDateTime := TTimeZone.local.ToUniversalTime(ExpiresAt);
     Query1.ParamByName('APPLICATION').AsString := User.Claims.Find('app').asString;
     Query1.ParamByName('VERSION').AsString := User.Claims.Find('ver').asString;
+    Query1.ParamByName('IPADDRESS').AsString := TXDataOperationContext.Current.Request.RemoteIP;
     Query1.ExecSQL;
   except on E: Exception do
     begin

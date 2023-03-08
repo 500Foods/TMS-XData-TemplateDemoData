@@ -16,6 +16,7 @@ begin
             '  person_id                  integer     NOT NULL, '+
             '  application                text        NOT NULL, '+
             '  version                    text        NOT NULL, '+
+            '  ip_address                 text        NOT NULL, '+
             '  CONSTRAINT constraint_name PRIMARY KEY (token_hash) '+
             ');'
            );
