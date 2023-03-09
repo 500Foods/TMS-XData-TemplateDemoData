@@ -12,7 +12,7 @@ uses
   FireDAC.Stan.ExprFuncs, FireDAC.Phys.SQLiteDef, FireDAC.Stan.Param,
   FireDAC.DatS, FireDAC.DApt.Intf, FireDAC.DApt, Data.DB,
   FireDAC.Comp.DataSet, FireDAC.Comp.Client, FireDAC.Phys.SQLite,
-  Vcl.ExtCtrls;
+  Vcl.ExtCtrls, System.JSON;
 
 type
   TMainForm = class(TForm)
@@ -51,6 +51,8 @@ type
     AppTimeZone: String;
     AppTimeZoneOffset: Integer;
     IPAddresses: TStringList;
+    AppConfigFile: String;
+    AppConfiguration: TJSONObject;
 
     DatabaseName: String;
     DatabaseAlias: String;
@@ -102,6 +104,9 @@ begin
 end;
 
 procedure TMainForm.FormCreate(ASender: TObject);
+var
+  i: Integer;
+  ConfigFile: TStringList;
 begin
 
   // Get System Values
@@ -114,15 +119,53 @@ begin
   AppTimeZone := GetAppTimeZone;
   AppTimeZoneOffset := GetAppTimeZoneOffset;
 
-  // This is a list
+  // List of App Parameters
   AppParameters := TStringList.Create;
   AppParameters.QuoteChar := ' ';
   GetAppParameters(AppParameters);
 
-  // This is also a list
+  // List of IP Addresses
   IPAddresses := TStringList.Create;
   IPAddresses.QuoteChar := ' ';
   GetIPAddresses(IPAddresses);
+
+  // Load JSON Configuration
+  mmINfo.Lines.Add('Loading Configuration ...');
+  AppConfigFile := StringReplace(ExtractFileName(ParamStr(0)),'exe','json',[]);
+  i := 0;
+  while i < AppParameters.Count do
+  begin
+    if Pos('"CONFIG=',UpperCase(AppParameters[i])) = 1
+    then AppConfigFile  := Copy(AppParameters[i],9,length(AppParameters[i])-9);
+    i := i + 1;
+  end;
+  ConfigFile := TStringList.Create;
+  if FileExists(AppConfigFile) then
+  begin
+    try
+      ConfigFile.LoadFromFile(AppConfigFile);
+      mmInfo.Lines.Add('...Configuration File Loaded: '+AppConfigFile);
+      AppConfiguration := TJSONObject.ParseJSONValue(ConfigFile.Text) as TJSONObject;
+    except on E: Exception do
+      begin
+        mmInfo.Lines.Add('...Configuration File Error: '+AppConfigFile);
+        mmInfo.Lines.Add('...['+E.ClassName+'] '+E.Message);
+        mmInfo.Lines.Add('...Using Default Configuration');
+        // Create an empty AppConfiguration
+        AppConfiguration := TJSONObject.Create;
+      end;
+    end;
+  end
+  else // File doesn't exist
+  begin
+    mmInfo.Lines.Add('...Configuration File Not Found: '+AppConfigFile);
+    mmInfo.Lines.Add('...Using Default Configuration');
+    // Create an empty AppConfiguration
+    AppConfiguration := TJSONObject.Create;
+  end;
+  ConfigFile.Free;
+  mmInfo.Lines.Add('Done.');
+  mmInfo.Lines.Add('');
 
   tmrStart.Enabled := True;
 end;
@@ -270,8 +313,11 @@ begin
   ImageFile := TStringList.Create;
 
   // FDConnection component dropped on form - DBConn
-  // FDPhysSQLiteDriverLink component droppoed on form
   // FDQuery component dropped on form - Query1
+  //
+  // FDPhysSQLiteDriverLink component droppoed on form
+  // support for other databases should do the same
+  //
   // DatabaseName is a Form Variable
   // DatabaseEngine is a Form Variable
   // DatabaseUsername is a Form Variable
@@ -368,16 +414,27 @@ begin
   mmInfo.Lines.Add('...Version: '+AppVersion);
   mmInfo.Lines.Add('...Release: '+FormatDateTime('yyyy-mmm-dd (ddd) hh:nn:ss', AppRelease));
   mmInfo.Lines.Add('...Release UTC: '+FormatDateTime('yyyy-mm-dd hh:nn:ss.zzz', AppReleaseUTC));
-  mmInfo.Lines.Add('...Memory Usage: '+Format('%.1n',[GetMemoryUsage / 1024 / 1024])+' MB');
-  mmInfo.Lines.Add('...File Name: '+AppFileName);
-  mmInfo.Lines.Add('...File Size: '+Format('%.1n',[AppFileSize / 1024 / 1024])+' MB');
+  mmInfo.Lines.Add('...Server Time: '+FormatDateTime('yyyy-mmm-dd (ddd) hh:nn:ss', Now));
   mmInfo.Lines.Add('...TimeZone: '+AppTimeZone);
   mmInfo.Lines.Add('...TimeZone Offset: '+IntToStr(AppTimeZoneOffset)+'m');
+  mmInfo.Lines.Add('...File Name: '+AppFileName);
+  mmInfo.Lines.Add('...File Size: '+Format('%.1n',[AppFileSize / 1024 / 1024])+' MB');
+  mmInfo.Lines.Add('...Memory Usage: '+Format('%.1n',[GetMemoryUsage / 1024 / 1024])+' MB');
   mmInfo.Lines.Add('...Parameters:');
-  mmInfo.Lines.AddStrings(AppParameters);
+  i := 0;
+  while i < AppParameters.Count do
+  begin
+    mmInfo.Lines.Add('        '+StringReplace(AppParameters[i],'"','',[rfReplaceAll]));
+    i := i + 1;
+  end;
   mmInfo.Lines.Add('...IP Addresses:');
-  mmInfo.Lines.AddStrings(IPAddresses);
-  mmInfo.Lines.Add('Ready.');
+  i := 0;
+  while i < IPAddresses.Count do
+  begin
+    mmInfo.Lines.Add('        '+StringReplace(IPAddresses[i],'"','',[rfReplaceAll]));
+    i := i + 1;
+  end;
+  mmInfo.Lines.Add('Done.');
   mmInfo.Lines.Add('');
 
   ImageFile.Free;

@@ -133,7 +133,7 @@
         <DCC_XmlOutput>C:\Users\Andrew Simard\Documents\Embarcadero\Studio\Projects\TMS-XData-TemplateDemoData\Win64\Release\</DCC_XmlOutput>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_Locale>1033</VerInfo_Locale>
-        <Debugger_RunParams>DBNAME=C:\Data\DemoData.sqlite</Debugger_RunParams>
+        <Debugger_RunParams>DBNAME=C:\Data\DemoData.sqlite CONFIG=C:\Data\Config.json</Debugger_RunParams>
         <PostBuildEvent><![CDATA[copy RandomDLL.dll "$(OUTPUTDIR)"
 $(PostBuildEvent)]]></PostBuildEvent>
         <VerInfo_AutoIncVersion>true</VerInfo_AutoIncVersion>
