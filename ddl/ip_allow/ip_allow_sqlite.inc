@@ -1,35 +1,52 @@
 // [table] ip_allow
 
+TableName := 'ip_allow';
+
 if (DatabaseEngine = 'sqlite') then
 begin
 
   with Query1 do
   begin
 
+    // Check if the table exists
     SQL.Clear;
-    SQL.Add('create table if not exists ip_allow ('+
-            '  ip_address                 text        NOT NULL, '+
-            '  last_modified              text        NOT NULL, '+
-            '  last_modifier              integer     NOT NULL, '+
-            '  valid_after                text        NOT NULL, '+
-            '  valid_until                text        NOT NULL, '+
-            '  justification              text        NOT NULL, '+
-            '  CONSTRAINT constraint_name PRIMARY KEY (ip_address) '+
-            ');'
-           );
-    ExecSQL;
+    SQL.Add('select count(*) records from '+TableName+';');
+    try
+      Open;
+      mmInfo.Lines.Add('...'+TableName+' ('+IntToStr(FieldByName('records').AsInteger)+' records)');
 
-    SQL.Clear;
-    SQL.Add('select count(*) records from ip_allow;');
-    Open;
+    except on E:Exception do
+      begin
+        mmInfo.Lines.Add('...'+TableName+' (CREATE)');
+        SQL.Clear;
+        SQL.Add('create table if not exists '+TableName+' ( '+
+                '  ip_address                 text        NOT NULL, '+
+                '  last_modified              text        NOT NULL, '+
+                '  last_modifier              integer     NOT NULL, '+
+                '  valid_after                text        NOT NULL, '+
+                '  valid_until                text        NOT NULL, '+
+                '  justification              text        NOT NULL, '+
+                '  CONSTRAINT constraint_name PRIMARY KEY (ip_address) '+
+                ');'
+               );
+        ExecSQL;
 
-    if FieldByName('records').AsInteger = 0 then
+        // Try it again
+        SQL.Clear;
+        SQL.Add('select count(*) records from '+TableName+';');
+        Open;
+      end;
+    end;
+
+    // Populate empty table with sample data
+    if (FieldByName('records').AsInteger = 0) then
     begin
+      mmInfo.Lines.Add('...'+TableName+' (POPULATE)');
       SQL.Clear;
 
       // Local IPs
-      SQL.Add('insert into ip_allow values( "127.0.0.1", Datetime("now"), 0, Datetime("now"), Datetime("now","+100 years"), "Local development IP address - Always Allow" );');
-      SQL.Add('insert into ip_allow values( "::1", Datetime("now"), 0, Datetime("now"),Datetime("now","+100 years"), "Local development IP address - Always Allow" );');
+      SQL.Add('insert into '+TableName+' values( "127.0.0.1", Datetime("now"), 0, Datetime("now"), Datetime("now","+100 years"), "Local development IP address - Always Allow" );');
+      SQL.Add('insert into '+TableName+' values( "::1", Datetime("now"), 0, Datetime("now"),Datetime("now","+100 years"), "Local development IP address - Always Allow" );');
 
       ExecSQL;
     end;

@@ -4,40 +4,57 @@
 // In this case, the list includes things like 'email', 'telephone','fax', 'home', etc.
 // preference is where the sort order is kept.
 
+TableName := 'contact';
+
 if (DatabaseEngine = 'sqlite') then
 begin
 
   with Query1 do
   begin
 
+    // Check if the table exists
     SQL.Clear;
-    SQL.Add('create table if not exists contact ('+
-            '  person_id                  integer     NOT NULL, '+
-            '  contact_id                 integer     NOT NULL, '+
-            '  last_modified              text        NOT NULL, '+
-            '  last_modifier              integer     NOT NULL, '+
-            '  list_contact               integer     NOT NULL, '+
-            '  value                      text        NOT NULL, '+
-            '  preference                 integer     NOT NULL, '+
-            '  login_use                  integer     NOT NULL, '+
-            '  CONSTRAINT constraint_name PRIMARY KEY (person_id,contact_id) '+
-            ');'
-           );
-    ExecSQL;
+    SQL.Add('select count(*) records from '+TableName+';');
+    try
+      Open;
+      mmInfo.Lines.Add('...'+TableName+' ('+IntToStr(FieldByName('records').AsInteger)+' records)');
 
-    SQL.Clear;
-    SQL.Add('select count(*) records from contact;');
-    Open;
+    except on E:Exception do
+      begin
+        mmInfo.Lines.Add('...'+TableName+' (CREATE)');
+        SQL.Clear;
+        SQL.Add('create table if not exists '+TableName+' ( '+
+                '  person_id                  integer     NOT NULL, '+
+                '  contact_id                 integer     NOT NULL, '+
+                '  last_modified              text        NOT NULL, '+
+                '  last_modifier              integer     NOT NULL, '+
+                '  list_contact               integer     NOT NULL, '+
+                '  value                      text        NOT NULL, '+
+                '  preference                 integer     NOT NULL, '+
+                '  login_use                  integer     NOT NULL, '+
+                '  CONSTRAINT constraint_name PRIMARY KEY (person_id,contact_id) '+
+                ');'
+               );
+        ExecSQL;
 
-    if FieldByName('records').AsInteger = 0 then
+        // Try it again
+        SQL.Clear;
+        SQL.Add('select count(*) records from '+TableName+';');
+        Open;
+      end;
+    end;
+
+    // Populate empty table with sample data
+    if (FieldByName('records').AsInteger = 0) then
     begin
+      mmInfo.Lines.Add('...'+TableName+' (POPULATE)');
       SQL.Clear;
 
       // SYSINSTALLER
-      SQL.Add('insert into contact values( 0, 0, Datetime("now"), 0, 0, "SYSINSTALLER", 0, 1 );');
+      SQL.Add('insert into '+TableName+' values( 0, 0, Datetime("now"), 0, 0, "SYSINSTALLER", 0, 1 );');
 
       // Add E-Mail (with login ability) for all users
-      SQL.Add('insert into contact  '+
+      SQL.Add('insert into '+TableName+' '+
               '  select '+
               '    person_id, '+
               '    1, '+
@@ -51,7 +68,7 @@ begin
             );
 
       // Add Telephone (Work) (without login ability) for all users
-      SQL.Add('insert into contact  '+
+      SQL.Add('insert into '+TableName+'  '+
               '  select '+
               '    person_id, '+
               '    2, '+
@@ -65,7 +82,7 @@ begin
             );
 
       // Add Telephone (Mobile) (without login ability) for all users
-      SQL.Add('insert into contact  '+
+      SQL.Add('insert into '+TableName+' '+
               '  select '+
               '    person_id, '+
               '    3, '+
@@ -79,7 +96,7 @@ begin
             );
 
       // Add Telephone (Home) (without login ability) for all users
-      SQL.Add('insert into contact  '+
+      SQL.Add('insert into '+TableName+' '+
               '  select '+
               '    person_id, '+
               '    4, '+

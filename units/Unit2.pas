@@ -72,10 +72,6 @@ implementation
 
 {$R *.dfm}
 
-resourcestring
-  SServerStopped = 'Server stopped';
-  SServerStartedAt = 'Server started at ';
-
 { TMainForm }
 
 procedure TMainForm.btStartClick(ASender: TObject);
@@ -307,9 +303,12 @@ procedure TMainForm.tmrStartTimer(Sender: TObject);
 var
   i: Integer;
   ImageFile: TStringList;
+  TableName: String;
 begin
 
   tmrStart.Enabled := False;
+
+  // This is (potentially) used when populating the photo table
   ImageFile := TStringList.Create;
 
   // FDConnection component dropped on form - DBConn
@@ -406,10 +405,7 @@ begin
   mmInfo.Lines.Add('Done.');
   mmInfo.Lines.Add('');
 
-  UpdateGUI;
-
   // Display System Values
-  mmInfo.Lines.Add('');
   mmInfo.Lines.Add('App Name: '+AppName);
   mmInfo.Lines.Add('...Version: '+AppVersion);
   mmInfo.Lines.Add('...Release: '+FormatDateTime('yyyy-mmm-dd (ddd) hh:nn:ss', AppRelease));
@@ -437,6 +433,10 @@ begin
   mmInfo.Lines.Add('Done.');
   mmInfo.Lines.Add('');
 
+  // Start Server
+  UpdateGUI;
+
+  // Cleanup
   ImageFile.Free;
 end;
 
@@ -448,11 +448,14 @@ begin
   btStart.Enabled := not ServerContainer.SparkleHttpSysDispatcher.Active;
   btStop.Enabled := not btStart.Enabled;
   if ServerContainer.SparkleHttpSysDispatcher.Active then
-    mmInfo.Lines.Add(SServerStartedAt + StringReplace(
-      ServerContainer.XDataServer.BaseUrl,
-      cHttp, cHttpLocalhost, [rfIgnoreCase]))
+  begin
+    mmInfo.Lines.Add('XData Server started at '+StringReplace( ServerContainer.XDataServer.BaseUrl, cHttp, cHttpLocalhost, [rfIgnoreCase]));
+    mmInfo.Lines.Add('SwaggerUI started at '+StringReplace( ServerContainer.XDataServer.BaseUrl, cHttp, cHttpLocalhost, [rfIgnoreCase])+'/swaggerui');
+  end
   else
-    mmInfo.Lines.Add(SServerStopped);
+  begin
+    mmInfo.Lines.Add('XData Server stopped');
+  end;
 end;
 
 end.

@@ -6,51 +6,68 @@
 // The last names were drawn from the following link
 // https://selectsurnames.com/top-300-surnames/
 
+TableName := 'photo';
+
 if (DatabaseEngine = 'sqlite') then
 begin
 
   with Query1 do
   begin
 
+    // Check if the table exists
     SQL.Clear;
-    SQL.Add('create table if not exists photo ( '+
-            '  person_id                  integer     NOT NULL, '+
-            '  photo_id                   integer     NOT NULL, '+
-            '  last_modified              text        NOT NULL, '+
-            '  last_modifier              integer     NOT NULL, '+
-            '  photo_type                 integer     NOT NULL, '+
-            '  photo_datauri              text        NOT NULL, '+
-            '  CONSTRAINT constraint_name PRIMARY KEY (person_id, photo_id) '+
-            ');'
-           );
-    ExecSQL;
+    SQL.Add('select count(*) records from '+TableName+';');
+    try
+      Open;
+      mmInfo.Lines.Add('...'+TableName+' ('+IntToStr(FieldByName('records').AsInteger)+' records)');
 
-    SQL.Clear;
-    SQL.Add('select count(*) records from photo;');
-    Open;
+    except on E:Exception do
+      begin
+        mmInfo.Lines.Add('...'+TableName+' (CREATE)');
+        SQL.Clear;
+        SQL.Add('create table if not exists '+TableName+' ( '+
+                '  person_id                  integer     NOT NULL, '+
+                '  photo_id                   integer     NOT NULL, '+
+                '  last_modified              text        NOT NULL, '+
+                '  last_modifier              integer     NOT NULL, '+
+                '  photo_type                 integer     NOT NULL, '+
+                '  photo_datauri              text        NOT NULL, '+
+                '  CONSTRAINT constraint_name PRIMARY KEY (person_id, photo_id) '+
+                ');'
+               );
+        ExecSQL;
 
-    if FieldByName('records').AsInteger = 0 then
+        // Try it again
+        SQL.Clear;
+        SQL.Add('select count(*) records from '+TableName+';');
+        Open;
+      end;
+    end;
+
+    // Populate empty table with sample data
+    if (FieldByName('records').AsInteger = 0) then
     begin
+      mmInfo.Lines.Add('...'+TableName+' (POPULATE)');
       SQL.Clear;
 
       // Random photos generated via https://boredhumans.com/faces.php
       SQL.Clear;
       ImageFile.Text := '';
-      SQL.Add('insert into photo values(0, 1, Datetime("now"), 0, 1, :PHOTO );');
+      SQL.Add('insert into '+TableName+' values(0, 1, Datetime("now"), 0, 1, :PHOTO );');
       ImageFile.LoadFromFile('ddl/photo/data/1.txt');
       ParamByName('PHOTO').AsString := ImageFile.Text;
       ExecSQL;
 
       SQL.Clear;
       ImageFile.Text := '';
-      SQL.Add('insert into photo values(0010010001, 1, Datetime("now"), 0, 1, :PHOTO );');
+      SQL.Add('insert into '+TableName+' values(0010010001, 1, Datetime("now"), 0, 1, :PHOTO );');
       ImageFile.LoadFromFile('ddl/photo/data/2.txt');
       ParamByName('PHOTO').AsString := ImageFile.Text;
       ExecSQL;
 
       SQL.Clear;
       ImageFile.Text := '';
-      SQL.Add('insert into photo values(0010020002, 1, Datetime("now"), 0, 1, :PHOTO );');
+      SQL.Add('insert into '+TableName+' values(0010020002, 1, Datetime("now"), 0, 1, :PHOTO );');
       ImageFile.LoadFromFile('ddl/photo/data/3.txt');
       ParamByName('PHOTO').AsString := ImageFile.Text;
       ExecSQL;
