@@ -40,6 +40,7 @@ type
     function GetMemoryUsage: NativeUInt;
     procedure btSwaggerClick(Sender: TObject);
     procedure tmrStartTimer(Sender: TObject);
+    procedure FormShow(Sender: TObject);
   public
     AppName: String;
     AppVersion: String;
@@ -168,6 +169,16 @@ begin
   ServerContainer.XDataServer.BaseURL := (AppConfiguration.getValue('BaseURL') as TJSONString).Value;
 
   tmrStart.Enabled := True;
+end;
+
+procedure TMainForm.FormShow(Sender: TObject);
+begin
+  if MainForm.Tag = 0 then
+  begin
+    MainForm.Tag := 1;
+    MainForm.WindowState := wsMaximized;
+    MainForm.WindowState := wsMinimized;
+  end;
 end;
 
 function TMainForm.GetAppFileName: String;
