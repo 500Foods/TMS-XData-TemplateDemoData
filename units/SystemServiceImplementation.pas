@@ -400,6 +400,8 @@ begin
     JWT.Claims.SetClaimOfType<string>( 'net', TXDataOperationContext.Current.Request.RemoteIP );
     JWT.Claims.SetClaimOfType<string>( 'aft', FormatDateTime('yyyy-mm-dd hh:nn:ss.zzz',  TTimeZone.local.ToUniversalTime(IssuedAt))+' UTC');
     JWT.Claims.SetClaimOfType<string>( 'unt', FormatDateTime('yyyy-mm-dd hh:nn:ss.zzz',  TTimeZone.local.ToUniversalTime(ExpiresAt))+' UTC');
+//    JWT.Claims.SetClaimOfType<int64>('iat', MillisecondsBetween(TTimeZone.local.ToUniversalTime(IssuedAt), EncodeDateTime(1970,1,1,0,0,0,0)));
+//    JWT.Claims.SetClaimOfType<int64>('exp', MillisecondsBetween(TTimeZone.local.ToUniversalTime(ExpiresAt), EncodeDateTime(1970,1,1,0,0,0,0)));
     JWT.Claims.SetClaimOfType<integer>('iat', DateTimeToUnix(TTimeZone.local.ToUniversalTime(IssuedAt)));
     JWT.Claims.Expiration := ExpiresAt; // Gets converted to UTC automatically
 

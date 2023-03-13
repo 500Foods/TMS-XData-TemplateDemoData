@@ -90,8 +90,8 @@ procedure TMainForm.btSwaggerClick(Sender: TObject);
 var
   url: String;
 const
-  cHttp = 'http://+';
-  cHttpLocalhost = 'http://localhost';
+  cHttp = '://+';
+  cHttpLocalhost = '://localhost';
 begin
   url := StringReplace(
       ServerContainer.XDataServer.BaseUrl,
@@ -146,22 +146,26 @@ begin
       begin
         mmInfo.Lines.Add('...Configuration File Error: '+AppConfigFile);
         mmInfo.Lines.Add('...['+E.ClassName+'] '+E.Message);
-        mmInfo.Lines.Add('...Using Default Configuration');
-        // Create an empty AppConfiguration
-        AppConfiguration := TJSONObject.Create;
       end;
     end;
   end
   else // File doesn't exist
   begin
     mmInfo.Lines.Add('...Configuration File Not Found: '+AppConfigFile);
-    mmInfo.Lines.Add('...Using Default Configuration');
-    // Create an empty AppConfiguration
-    AppConfiguration := TJSONObject.Create;
   end;
   ConfigFile.Free;
+
+  if Appconfiguration = nil then
+  begin
+    // Create an empty AppConfiguration
+    mmInfo.Lines.Add('...Using Default Configuration');
+    AppConfiguration := TJSONObject.Create;
+    AppConfiguration.AddPair('BaseURL','http://+:12345/tms/xdata');
+  end;
   mmInfo.Lines.Add('Done.');
   mmInfo.Lines.Add('');
+
+  ServerContainer.XDataServer.BaseURL := (AppConfiguration.getValue('BaseURL') as TJSONString).Value;
 
   tmrStart.Enabled := True;
 end;
@@ -413,6 +417,7 @@ begin
   mmInfo.Lines.Add('...Server Time: '+FormatDateTime('yyyy-mmm-dd (ddd) hh:nn:ss', Now));
   mmInfo.Lines.Add('...TimeZone: '+AppTimeZone);
   mmInfo.Lines.Add('...TimeZone Offset: '+IntToStr(AppTimeZoneOffset)+'m');
+  mmInfo.Lines.Add('...Base URL: '+ServerContainer.XDataServer.BaseURL);
   mmInfo.Lines.Add('...File Name: '+AppFileName);
   mmInfo.Lines.Add('...File Size: '+Format('%.1n',[AppFileSize / 1024 / 1024])+' MB');
   mmInfo.Lines.Add('...Memory Usage: '+Format('%.1n',[GetMemoryUsage / 1024 / 1024])+' MB');
@@ -434,6 +439,7 @@ begin
   mmInfo.Lines.Add('');
 
   // Start Server
+  ServerContainer.SparkleHttpSysDispatcher.Active := True;
   UpdateGUI;
 
   // Cleanup
@@ -442,8 +448,8 @@ end;
 
 procedure TMainForm.UpdateGUI;
 const
-  cHttp = 'http://+';
-  cHttpLocalhost = 'http://localhost';
+  cHttp = '://+';
+  cHttpLocalhost = '://localhost';
 begin
   btStart.Enabled := not ServerContainer.SparkleHttpSysDispatcher.Active;
   btStop.Enabled := not btStart.Enabled;
