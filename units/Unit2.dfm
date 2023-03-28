@@ -1,7 +1,7 @@
 object MainForm: TMainForm
   Left = 0
   Top = 0
-  Caption = 'XData Template Demo Data'
+  Caption = '..'
   ClientHeight = 502
   ClientWidth = 743
   Color = clBtnFace
