@@ -166,6 +166,8 @@ $(PostBuildEvent)]]></PostBuildEvent>
         <DCCReference Include="units\PersonServiceImplementation.pas"/>
         <DCCReference Include="units\DashboardService.pas"/>
         <DCCReference Include="units\DashboardServiceImplementation.pas"/>
+        <DCCReference Include="units\ChatService.pas"/>
+        <DCCReference Include="units\ChatServiceImplementation.pas"/>
         <None Include="RandomDLL.dll"/>
         <None Include="ddl\person\person.inc"/>
         <None Include="ddl\person\person_sqlite.inc"/>

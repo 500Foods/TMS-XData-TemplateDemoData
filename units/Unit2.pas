@@ -432,6 +432,7 @@ begin
   mmInfo.Lines.Add('...File Name: '+AppFileName);
   mmInfo.Lines.Add('...File Size: '+Format('%.1n',[AppFileSize / 1024 / 1024])+' MB');
   mmInfo.Lines.Add('...Memory Usage: '+Format('%.1n',[GetMemoryUsage / 1024 / 1024])+' MB');
+
   mmInfo.Lines.Add('...Parameters:');
   i := 0;
   while i < AppParameters.Count do
@@ -439,6 +440,7 @@ begin
     mmInfo.Lines.Add('        '+StringReplace(AppParameters[i],'"','',[rfReplaceAll]));
     i := i + 1;
   end;
+
   mmInfo.Lines.Add('...IP Addresses:');
   i := 0;
   while i < IPAddresses.Count do
@@ -446,6 +448,13 @@ begin
     mmInfo.Lines.Add('        '+StringReplace(IPAddresses[i],'"','',[rfReplaceAll]));
     i := i + 1;
   end;
+
+
+  // Are chat services avialable?
+  if (AppConfiguration.GetValue('Chat Interface') as TJSONObject) = nil
+  then mmInfo.Lines.Add('...Chat: UNAVAILABLE')
+  else mmInfo.Lines.Add('...Chat: Enabled');
+
   mmInfo.Lines.Add('Done.');
   mmInfo.Lines.Add('');
 

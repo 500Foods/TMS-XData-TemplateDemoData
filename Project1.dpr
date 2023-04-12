@@ -11,7 +11,9 @@ uses
   PersonService in 'units\PersonService.pas',
   PersonServiceImplementation in 'units\PersonServiceImplementation.pas',
   DashboardService in 'units\DashboardService.pas',
-  DashboardServiceImplementation in 'units\DashboardServiceImplementation.pas';
+  DashboardServiceImplementation in 'units\DashboardServiceImplementation.pas',
+  ChatService in 'units\ChatService.pas',
+  ChatServiceImplementation in 'units\ChatServiceImplementation.pas';
 
 {$R *.res}
 
