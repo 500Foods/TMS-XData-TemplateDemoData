@@ -16,14 +16,24 @@ Not much to look at, honestly, but that's just the server application.  All it i
 ![image](https://user-images.githubusercontent.com/41052272/222646739-118e88fd-e47d-4bbf-b17a-90af3499b1da.png)
 *Testing with Swagger Interface*
 
-## Usage Note: RandomDLL.DLL
-This DLL needs to be included in the same folder as the project executable. It is needed by the SHA-256 hash function that is used in several places, that, in turn, comes from the [TMS Cryptography Pack](https://www.tmssoftware.com/site/tmscrypto.asp). A post-build event has been added to the project to do this automatically.  This assumes that a Win64 project is being built.  Please adjust accordingly.
+## Services
+Most of the services are collections of endpoints that are intended to support a particular Dashboard. Many of the endpoints are used as a front-end to one or more SQL queries against one or more underlying databases.  As there is no ORM used here, the only access to these databases is through these endpoints.  This means there are likely to be endpoints needed to cover any CRUD operations that a client may want to issue. Many endpoints have parameters that allow more than one of these kinds of operations from the same endpoint.
+
+Some services are also more complex, interfacing to other systems, as is the case with the Chat Service, or require additional configuration to be fully operational, which also happens to be the case with the Chat Service.  Please refer to the documentation for each individual service you plan on using for additional information.
+
+* [Chat Service](https://github.com/500Foods/TMS-XData-TemplateDemoData/docs/ChatService.md)
+* [Dashboard Service](https://github.com/500Foods/TMS-XData-TemplateDemoData/docs/DashboardService.md)
+* [Person Service](https://github.com/500Foods/TMS-XData-TemplateDemoData/docs/PersonService.md)
+* [System Service](https://github.com/500Foods/TMS-XData-TemplateDemoData/docs/SystemService.md)
 
 ## Key Dependencies
 As with any modern application, other libraries/dependencies have been used in this project.
 - [TMS XData](https://www.tmssoftware.com/site/tmswebcore.asp) - This is a TMS XData project, after all
 - [TMS Cryptography Pack](https://www.tmssoftware.com/site/tmscrypto.asp) - Supples the SHA-256 hash function
 - [TZDB](https://github.com/pavkam/tzdb) - Comprehensive IANA TZ library for Delphi
+
+## Usage Note: RandomDLL.DLL
+This DLL needs to be included in the same folder as the project executable. It is needed by the SHA-256 hash function that is used in several places, that, in turn, comes from the [TMS Cryptography Pack](https://www.tmssoftware.com/site/tmscrypto.asp). A post-build event has been added to the project to do this automatically.  This assumes that a Win64 project is being built.  Please adjust accordingly.
 
 ## Contributions
 Initially, this example uses SQLite as its database, as well as a collection of include files for all of the SQL operations that have been implemented so far.  Over time, this will be expanded to include support for more databases and more queries.  If there's a database you'd like to see included in the template, by all means please post an Issue or, if you're able, make a Pull Request and we'll see that it gets added.
