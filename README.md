@@ -22,9 +22,9 @@ Most of the services are collections of endpoints that are intended to support a
 Some services are also more complex, interfacing to other systems, as is the case with the Chat Service, or require additional configuration to be fully operational, which also happens to be the case with the Chat Service.  Please refer to the documentation for each individual service you plan on using for additional information.
 
 * [Chat Service](https://github.com/500Foods/TMS-XData-TemplateDemoData/blob/main/docs/ChatService.md)
-* [Dashboard Service](https://github.com/500Foods/TMS-XData-TemplateDemoData/docs/DashboardService.md)
-* [Person Service](https://github.com/500Foods/TMS-XData-TemplateDemoData/docs/PersonService.md)
-* [System Service](https://github.com/500Foods/TMS-XData-TemplateDemoData/docs/SystemService.md)
+* [Dashboard Service](https://github.com/500Foods/TMS-XData-TemplateDemoData/blob/main/docs/DashboardService.md)
+* [Person Service](https://github.com/500Foods/TMS-XData-TemplateDemoData/blob/main/docs/PersonService.md)
+* [System Service](https://github.com/500Foods/TMS-XData-TemplateDemoData/blob/main/docs/SystemService.md)
 
 ## Key Dependencies
 As with any modern application, other libraries/dependencies have been used in this project.
