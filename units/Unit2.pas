@@ -54,6 +54,7 @@ type
     IPAddresses: TStringList;
     AppConfigFile: String;
     AppConfiguration: TJSONObject;
+    ChatModels: TStringList;
 
     DatabaseName: String;
     DatabaseAlias: String;
@@ -416,6 +417,8 @@ begin
   {$Include ddl\token\token.inc}
   {$Include ddl\photo\photo.inc}
   {$Include ddl\action_history\action_history.inc}
+  {$Include ddl\chatai_history\chatai_history.inc}
+  {$Include ddl\imageai_history\imageai_history.inc}
 
   mmInfo.Lines.Add('Done.');
   mmInfo.Lines.Add('');
@@ -451,9 +454,18 @@ begin
 
 
   // Are chat services avialable?
-  if (AppConfiguration.GetValue('Chat Interface') as TJSONObject) = nil
+  if (AppConfiguration.GetValue('Chat Interface') as TJSONArray) = nil
   then mmInfo.Lines.Add('...Chat: UNAVAILABLE')
-  else mmInfo.Lines.Add('...Chat: Enabled');
+  else
+  begin
+    mmInfo.Lines.Add('...Chat:');
+    i := 0;
+    while i < (AppConfiguration.GetValue('Chat Interface') as TJSONArray).Count do
+    begin;
+      mmInfo.Lines.Add('        '+(((AppConfiguration.GetValue('Chat Interface') as TJSONArray).items[i] as TJSONObject).getValue('Name') as TJSONString).Value);
+      i := i + 1;
+    end;
+  end;
 
   mmInfo.Lines.Add('Done.');
   mmInfo.Lines.Add('');
