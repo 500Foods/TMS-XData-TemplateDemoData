@@ -10,7 +10,7 @@ begin
     SQL.Add('select '+
             '  "7 days" period, '+
             '  count(*) requests, '+
-            '  sum(cost_total) cost '+
+            '  coalesce(sum(cost_total),0) cost '+
             ' from '+
             '   chatai_history '+
             ' WHERE '+
@@ -21,7 +21,7 @@ begin
             'select '+
             '  "30 days" period, '+
             '  count(*) requests, '+
-            '  sum(cost_total) cost '+
+            '  coalesce(sum(cost_total),0) cost '+
             ' from '+
             '   chatai_history '+
             ' WHERE '+
@@ -32,7 +32,7 @@ begin
             'select '+
             '  "all" period, '+
             '  count(*) requests, '+
-            '  sum(cost_total) cost '+
+            '  coalesce(sum(cost_total),0) cost '+
             ' from '+
             '   chatai_history;'
            );
