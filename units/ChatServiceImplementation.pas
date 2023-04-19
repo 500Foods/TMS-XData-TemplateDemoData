@@ -80,6 +80,8 @@ begin
 
   // Time this event
   ElapsedTime := Now;
+  Request := nil;
+  ModelJSON := nil;
 
   // Is the chat service available?
   if (MainForm.AppConfiguration.GetValue('Chat Interface') as TJSONArray) = nil
@@ -689,6 +691,7 @@ var
   ContextJSON: TJSONArray;
 begin
   LimitChars := Limit * 2; // 3 seems to not give enough room for basic responses
+  ContextJSON := nil;
 
 //  MainForm.mmInfo.Lines.Add('Trim Start: '+IntToStr(LimitChars)+' limit, '+IntToStr(Length(Conversation))+' conv, '+IntToStr(Length(Context))+' ctx.');
 

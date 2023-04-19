@@ -12,7 +12,7 @@ uses
   FireDAC.Stan.ExprFuncs, FireDAC.Phys.SQLiteDef, FireDAC.Stan.Param,
   FireDAC.DatS, FireDAC.DApt.Intf, FireDAC.DApt, Data.DB,
   FireDAC.Comp.DataSet, FireDAC.Comp.Client, FireDAC.Phys.SQLite,
-  Vcl.ExtCtrls, System.JSON, System.StrUtils,IdGlobalProtocols;
+  Vcl.ExtCtrls, System.JSON, System.StrUtils,IdGlobalProtocols, System.Generics.Collections;
 
 type
   TMainForm = class(TForm)
@@ -441,6 +441,8 @@ begin
   then mmInfo.Lines.Add('ERROR Initializing Cache Folder: '+AppCacheFolder+'images');
   if not(ForceDirectories(AppCacheFolder+'images/ai'))
   then mmInfo.Lines.Add('ERROR Initializing Cache Folder: '+AppCacheFolder+'images/ai');
+  if not(ForceDirectories(AppCacheFolder+'images/people'))
+  then mmInfo.Lines.Add('ERROR Initializing Cache Folder: '+AppCacheFolder+'images/people');
 
   CacheFolderDirs  := FloatToStrF(Length(TDirectory.GetDirectories(AppCacheFolder,'*',TsearchOption.soAllDirectories)),ffNumber,8,0);
   CacheFolderList := TDirectory.GetFiles(AppCacheFolder,'*.*',TsearchOption.soAllDirectories);
