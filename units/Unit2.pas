@@ -3,7 +3,7 @@ unit Unit2;
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,System.Types,
   System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs,
   Vcl.StdCtrls, Unit1, System.IOUtils, System.DateUtils, IdStack, IdGlobal, psAPI, WinAPi.ShellAPI,
   FireDAC.Stan.Intf, FireDAC.Stan.Option, FireDAC.Stan.Error,
@@ -12,7 +12,7 @@ uses
   FireDAC.Stan.ExprFuncs, FireDAC.Phys.SQLiteDef, FireDAC.Stan.Param,
   FireDAC.DatS, FireDAC.DApt.Intf, FireDAC.DApt, Data.DB,
   FireDAC.Comp.DataSet, FireDAC.Comp.Client, FireDAC.Phys.SQLite,
-  Vcl.ExtCtrls, System.JSON, System.StrUtils;
+  Vcl.ExtCtrls, System.JSON, System.StrUtils,IdGlobalProtocols;
 
 type
   TMainForm = class(TForm)
@@ -321,6 +321,10 @@ var
   i: Integer;
   ImageFile: TStringList;
   TableName: String;
+  CacheFolderDirs: String;
+  CacheFolderFiles: String;
+  CacheFolderSize: Double;
+  CacheFolderList: TStringDynArray;
 begin
 
   tmrStart.Enabled := False;
@@ -438,6 +442,13 @@ begin
   if not(ForceDirectories(AppCacheFolder+'images/ai'))
   then mmInfo.Lines.Add('ERROR Initializing Cache Folder: '+AppCacheFolder+'images/ai');
 
+  CacheFolderDirs  := FloatToStrF(Length(TDirectory.GetDirectories(AppCacheFolder,'*',TsearchOption.soAllDirectories)),ffNumber,8,0);
+  CacheFolderList := TDirectory.GetFiles(AppCacheFolder,'*.*',TsearchOption.soAllDirectories);
+  CacheFolderFiles := FloatToStrF(Length(CacheFolderList),ffNumber,8,0);
+  CacheFolderSize := 0;
+  for i := 0 to Length(CacheFolderList)-1 do
+    CacheFolderSize := CacheFolderSize + (FileSizeByName(CacheFolderList[i]) / 1024 / 1024);
+
   // Display System Values
   mmInfo.Lines.Add('App Name: '+AppName);
   mmInfo.Lines.Add('...Version: '+AppVersion);
@@ -450,6 +461,7 @@ begin
   mmInfo.Lines.Add('...File Name: '+AppFileName);
   mmInfo.Lines.Add('...File Size: '+Format('%.1n',[AppFileSize / 1024 / 1024])+' MB');
   mmInfo.Lines.Add('...Cache Folder: '+AppCacheFolder);
+  mmInfo.Lines.Add('...Cache Statistics: '+CacheFolderDirs+' Folders, '+CacheFolderFiles+' Files, '+FloatToStrF(CacheFolderSize,ffNumber,8,1)+' MB');
   mmInfo.Lines.Add('...Memory Usage: '+Format('%.1n',[GetMemoryUsage / 1024 / 1024])+' MB');
 
   mmInfo.Lines.Add('...Parameters:');
