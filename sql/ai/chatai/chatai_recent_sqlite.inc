@@ -18,7 +18,7 @@ begin
             'ORDER BY '+
             '  last_modified DESC '+
             'LIMIT '+
-            '  50;'
+            '  100;'
            );
 
   end;

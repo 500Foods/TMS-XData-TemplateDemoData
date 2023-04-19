@@ -389,6 +389,7 @@ begin
 
   // Returning JSON, so flag it as such
   TXDataOperationContext.Current.Response.Headers.SetValue('content-type', 'image/png');
+  TXDataOperationContext.Current.Response.Headers.SetValue('cache-control', 'max-age=31536000');
 
   // Figure out what the cache filename is
   CacheFolder := MainForm.AppCacheFolder+'images/ai/';
