@@ -43,6 +43,7 @@ type
     procedure Export(Format: String; QueryResult: TFDQuery; var OutputStream: TStream);
     function QueryToJSON(QueryResult: TFDQuery): String;
     function DecodeSession(s: String):TDateTime;
+
   end;
 
 var
@@ -338,5 +339,6 @@ begin
     end;
   end;
 end;
+
 
 end.

@@ -7,7 +7,13 @@ uses
   System.SysUtils,
   System.JSON,
   System.DateUtils,
+  System.StrUtils,
+  System.IOUtils,
+  System.NetEncoding,
   System.Generics.Collections,
+
+  VCL.Graphics,
+  Vcl.Imaging.pngimage,
 
   System.Net.URLClient,
   System.Net.HttpClientComponent,
@@ -40,6 +46,8 @@ type
   private
     function Chat(Model: String; Conversation: String; Context: String; Choices: Integer; ChatID: String):TStream;
     function GetChatInformation:TStream;
+    function GetChatImage(Filename: String):TStream;
+
     function TrimConversation(var Conversation: String; var Context: String; Limit: Integer):String;
   end;
 
@@ -344,6 +352,154 @@ begin
 end;
 
 
+function TChatService.GetChatImage(Filename: String): TStream;
+var
+  CacheFile: String;
+  CacheFolder: String;
+  CacheStatus: String;
+
+  DBConn: TFDConnection;
+  Query1: TFDQuery;
+  DatabaseName: String;
+  DatabaseEngine: String;
+  ElapsedTime: TDateTime;
+
+  ImageString: String;
+  ImageBytes: TBytes;
+  ImageThumb: TPNGImage;
+  ImageBitmap: TBitmap;
+
+begin
+  ElapsedTime := Now;
+  CacheStatus := 'Unknown';
+
+  // Setup DB connection and query
+  // NOTE: Image access is anonymous, but database access is usually not,
+  // so we should be careful how and when this is called
+  try
+    DatabaseName := MainForm.DatabaseName;
+    DatabaseEngine := MainForm.DatabaseEngine;
+    DBSupport.ConnectQuery(DBConn, Query1, DatabaseName, DatabaseEngine);
+  except on E: Exception do
+    begin
+      MainForm.mmInfo.Lines.Add('['+E.Classname+'] '+E.Message);
+      raise EXDataHttpUnauthorized.Create('Internal Error: CQ');
+    end;
+  end;
+
+  // Returning JSON, so flag it as such
+  TXDataOperationContext.Current.Response.Headers.SetValue('content-type', 'image/png');
+
+  // Figure out what the cache filename is
+  CacheFolder := MainForm.AppCacheFolder+'images/ai/';
+  if Pos('_tn.', Filename) > 0
+  then CacheFile := StringReplace(CacheFolder+RightStr(LeftStr(Filename, Length(Filename)-9),3)+'/'+Filename,'/','\',[rfReplaceall])
+  else CacheFile := StringReplace(CacheFolder+RightStr(LeftStr(Filename, Length(Filename)-6),3)+'/'+Filename,'/','\',[rfReplaceall]);
+
+  // We've got a cache hit
+  if FileExists(CacheFile) then
+  begin
+    CacheStatus := 'Hit';
+    Result := TFileStream.Create(CacheFile, fmOpenRead);
+  end
+
+  // Cache miss
+  else
+  begin
+    CacheStatus := 'Miss';
+
+    // Retrieve Image from Database
+    {$Include sql\ai\imageai\imageai_retrieve.inc}
+
+    // If thumbnail is requested, that's fine, but the original is what is stored in the database
+    // so let's get that first, and then generate the image and thumbnail cache, and then return whatever
+    // was originally requested.
+    Query1.ParambyName('CHATID').AsString := StringReplace(Copy(Filename,1,Length(Filename) - 4),'_tn','',[]);
+    try
+      Query1.Open;
+    except on E: Exception do
+      begin
+        MainForm.mmInfo.Lines.Add('['+E.Classname+'] '+E.Message);
+        DBSupport.DisconnectQuery(DBConn, Query1);
+        raise EXDataHttpUnauthorized.Create('Internal Error: IAIR');
+      end;
+    end;
+
+    if (Query1.RecordCount <> 1) then
+    begin
+      DBSupport.DisconnectQuery(DBConn, Query1);
+      raise EXDataHttpUnauthorized.Create('Image Not Found.');
+    end;
+
+    // Generate Regular Cache Entry - Decode Base64 Image
+    ImageString := Query1.FieldByName('generated_image').AsString;
+    ImageBytes := TNetEncoding.Base64.DecodeStringToBytes(Copy(ImageString,33,length(ImageString)-34));
+
+    // Return binary file as the result
+    Result := TMemoryStream.Create;
+    Result.WriteBuffer(Pointer(ImageBytes)^, Length(ImageBytes));
+
+    // Save the binary file to the cache
+    if (ForceDirectories(System.IOUtils.TPath.GetDirectoryName(CacheFile)))
+    then (Result as TMemoryStream).SaveToFile(StringReplace(CacheFile,'_tn','',[]));
+
+    // Create a thumbnail version: File > PNG > BMP > PNG > File
+    ImageThumb := TPNGImage.Create;
+    ImageThumb.LoadFromFile(StringReplace(CacheFile,'_tn','',[]));
+    ImageBitmap := TBitmap.Create;
+    ImageBitmap.width := 92;
+    ImageBitmap.height := 92;
+    ImageBitmap.Canvas.StretchDraw(Rect(0,0,92,92), ImageThumb);
+    ImageThumb.assign(ImageBitmap);
+
+    if Pos('_tn.',Filename) > 0 then
+    begin
+      ImageThumb.SaveToFile(CacheFile);
+      (Result as TMemoryStream).LoadFromFile(CacheFile);
+    end
+    else
+    begin
+      ImageThumb.SavetoFile(StringReplace(CacheFile,'.png','_tn.png',[]));
+    end;
+
+    ImageThumb.Free;
+    ImageBitmap.Free;
+  end;
+
+  // Keep track of endpoint history
+  try
+    {$Include sql\system\endpoint_history_insert\endpoint_history_insert.inc}
+    Query1.ParamByName('PERSONID').AsInteger := 1; // Default admin user
+    Query1.ParamByName('ENDPOINT').AsString := 'ChatService.GetChatImage';
+    Query1.ParamByName('ACCESSED').AsDateTime := TTimeZone.local.ToUniversalTime(ElapsedTime);
+    Query1.ParamByName('IPADDRESS').AsString := TXDataOperationContext.Current.Request.RemoteIP;
+    Query1.ParamByName('APPLICATION').AsString := MainForm.AppName;
+    Query1.ParamByName('VERSION').AsString := MainForm.AppVersion;
+    Query1.ParamByName('DATABASENAME').AsString := DatabaseName;
+    Query1.ParamByName('DATABASEENGINE').AsString := DatabaseEngine;
+    Query1.ParamByName('EXECUTIONMS').AsInteger := MillisecondsBetween(Now,ElapsedTime);
+    Query1.ParamByName('DETAILS').AsString := '['+Filename+']['+CacheStatus+']';
+    Query1.ExecSQL;
+  except on E: Exception do
+    begin
+      MainForm.mmInfo.Lines.Add('['+E.Classname+'] '+E.Message);
+      DBSupport.DisconnectQuery(DBConn, Query1);
+      raise EXDataHttpUnauthorized.Create('Internal Error: EHI');
+    end;
+  end;
+
+  // All Done
+  try
+    DBSupport.DisconnectQuery(DBConn, Query1);
+  except on E: Exception do
+    begin
+      MainForm.mmInfo.Lines.Add('['+E.Classname+'] '+E.Message);
+      raise EXDataHttpUnauthorized.Create('Internal Error: DQ');
+    end;
+  end;
+
+end;
+
 function TChatService.GetChatInformation: TStream;
 var
   i: Integer;
@@ -358,9 +514,14 @@ var
   ElapsedTime: TDateTime;
   User: IUserIdentity;
   JWT: String;
+  URL: String;
 
 begin
   ElapsedTime := Now;
+
+  // For image links, we'll need to point them to the GetChatImage Endpoint
+  URL := TXdataOperationContext.current.Request.URI.AbsoluteURI;
+  URL := Copy(URL,1,Pos('GetChatInformation',URL)-1)+'GetChatImage?Filename=';
 
   // Get data from the JWT
   User := TXDataOperationContext.Current.Request.User;
@@ -469,6 +630,7 @@ begin
  // Get ImageAI Recent
   try
     {$Include sql\ai\imageai\imageai_recent.inc}
+    Query1.ParamByName('URL').AsString := URL;
     Query1.Open;
   except on E: Exception do
     begin
@@ -478,9 +640,6 @@ begin
   end;
   ResultArray := TJSONObject.ParseJSONValue(DBSupport.QueryToJSON(Query1)) as TJSONArray;
   Response.AddPair('ImageAI Recent', ResultArray);
-
-
-
 
   Result := TStringStream.Create(Response.ToString);
 
@@ -588,6 +747,8 @@ begin
 //  MainForm.mmInfo.Lines.Add('Context: '+Context);
 
 end;
+
+
 
 initialization
   RegisterServiceType(TChatService);

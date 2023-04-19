@@ -34,7 +34,7 @@ type
     ///  <param name="ChatID">
     ///    A unique identifier for the chat.  This is used to store the chat, and subsequent updates to the chat, in a server database, and helps ensure that we just end up with a single copy of the conversation when we're done.
     ///  </param>
-    [HttpPost] function Chat([XDefault('ChatGPT 3.5')] Model: String; Conversation: String; [XDefault('None')] Context: String; [XDefault(1)] Choices: Integer; [XDefault('Swagger Testing')] ChatID: String):TStream;
+    [Authorize] [HttpPost] function Chat([XDefault('ChatGPT 3.5')] Model: String; Conversation: String; [XDefault('None')] Context: String; [XDefault(1)] Choices: Integer; [XDefault('Swagger Testing')] ChatID: String):TStream;
 
     /// GetChatInformation
     ///  <summary>
@@ -43,7 +43,16 @@ type
     ///  <remarks>
     ///    No parameters here as the block of JSON is the same regardless.
     ///  </remarks>
-    [HttpGet] function GetChatInformation:TStream;
+    [Authorize] [HttpGet] function GetChatInformation:TStream;
+
+    /// GetChatInformation
+    ///  <summary>
+    ///    Returns JSON that describes various aspects of the chat subsystem, like what models are available, and other statistical information.
+    ///  </summary>
+    ///  <remarks>
+    ///    No parameters here as the block of JSON is the same regardless.
+    ///  </remarks>
+    [HttpGet] function GetChatImage(Filename: String):TStream;
   end;
 
 implementation

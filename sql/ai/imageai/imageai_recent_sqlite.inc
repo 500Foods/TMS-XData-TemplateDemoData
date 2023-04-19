@@ -10,7 +10,7 @@ begin
     SQL.Add('SELECT '+
             '  chat_id, '+
             '  prompt, '+
-            '  generated_image, '+
+            '  "<img src="||:URL||chat_id||"_tn.png>" generated_image, '+
             '  last_modified '+
             'FROM '+
             '  imageai_history '+

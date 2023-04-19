@@ -12,7 +12,7 @@ uses
   FireDAC.Stan.ExprFuncs, FireDAC.Phys.SQLiteDef, FireDAC.Stan.Param,
   FireDAC.DatS, FireDAC.DApt.Intf, FireDAC.DApt, Data.DB,
   FireDAC.Comp.DataSet, FireDAC.Comp.Client, FireDAC.Phys.SQLite,
-  Vcl.ExtCtrls, System.JSON;
+  Vcl.ExtCtrls, System.JSON, System.StrUtils;
 
 type
   TMainForm = class(TForm)
@@ -55,6 +55,7 @@ type
     AppConfigFile: String;
     AppConfiguration: TJSONObject;
     ChatModels: TStringList;
+    AppCacheFolder: String;
 
     DatabaseName: String;
     DatabaseAlias: String;
@@ -423,6 +424,20 @@ begin
   mmInfo.Lines.Add('Done.');
   mmInfo.Lines.Add('');
 
+  // Cache Folder
+  if (AppConfiguration.GetValue('Cache Folder') <> nil)
+  then AppCacheFolder := (AppConfiguration.GetValue('Cache Folder') as TJSONString).Value
+  else AppCacheFolder := GetCurrentDir+'/cache';
+  if RightStr(AppCacheFolder,1) <> '/'
+  then AppCacheFolder := AppCacheFolder + '/';
+
+  if not(ForceDirectories(AppCacheFolder))
+  then mmInfo.Lines.Add('ERROR Initializing Cache Folder: '+AppCacheFolder);
+  if not(ForceDirectories(AppCacheFolder+'images'))
+  then mmInfo.Lines.Add('ERROR Initializing Cache Folder: '+AppCacheFolder+'images');
+  if not(ForceDirectories(AppCacheFolder+'images/ai'))
+  then mmInfo.Lines.Add('ERROR Initializing Cache Folder: '+AppCacheFolder+'images/ai');
+
   // Display System Values
   mmInfo.Lines.Add('App Name: '+AppName);
   mmInfo.Lines.Add('...Version: '+AppVersion);
@@ -434,6 +449,7 @@ begin
   mmInfo.Lines.Add('...Base URL: '+ServerContainer.XDataServer.BaseURL);
   mmInfo.Lines.Add('...File Name: '+AppFileName);
   mmInfo.Lines.Add('...File Size: '+Format('%.1n',[AppFileSize / 1024 / 1024])+' MB');
+  mmInfo.Lines.Add('...Cache Folder: '+AppCacheFolder);
   mmInfo.Lines.Add('...Memory Usage: '+Format('%.1n',[GetMemoryUsage / 1024 / 1024])+' MB');
 
   mmInfo.Lines.Add('...Parameters:');
