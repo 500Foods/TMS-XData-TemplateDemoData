@@ -46,8 +46,7 @@ type
   private
     function Chat(Model: String; Conversation: String; Context: String; Choices: Integer; ChatID: String):TStream;
     function GetChatInformation:TStream;
-    function GetChatImage(Filename: String):TStream;
-
+    function GetChatImage(F: String):TStream;
     function TrimConversation(var Conversation: String; var Context: String; Limit: Integer):String;
   end;
 
@@ -354,11 +353,17 @@ begin
 end;
 
 
-function TChatService.GetChatImage(Filename: String): TStream;
+function TChatService.GetChatImage(F: String): TStream;
 var
-  CacheFile: String;
   CacheFolder: String;
-  CacheStatus: String;
+  CacheFile: String;
+  CacheFileThumb: String;
+
+  SearchIndex: String;
+  SearchFile: String;
+  SearchStatus: String;
+
+  ReturnThumb: Boolean;
 
   DBConn: TFDConnection;
   Query1: TFDQuery;
@@ -373,7 +378,7 @@ var
 
 begin
   ElapsedTime := Now;
-  CacheStatus := 'Unknown';
+  SearchStatus := 'Unknown';
 
   // Setup DB connection and query
   // NOTE: Image access is anonymous, but database access is usually not,
@@ -389,27 +394,42 @@ begin
     end;
   end;
 
-  // Returning JSON, so flag it as such
+  // Returning an Image, so flag it as such
   TXDataOperationContext.Current.Response.Headers.SetValue('content-type', 'image/png');
+
+  // These don't really expire, so set cache to one year
   TXDataOperationContext.Current.Response.Headers.SetValue('cache-control', 'max-age=31536000');
 
-  // Figure out what the cache filename is
+  // Where is the Cache?
   CacheFolder := MainForm.AppCacheFolder+'images/ai/';
-  if Pos('_tn.', Filename) > 0
-  then CacheFile := StringReplace(CacheFolder+RightStr(LeftStr(Filename, Length(Filename)-9),3)+'/'+Filename,'/','\',[rfReplaceall])
-  else CacheFile := StringReplace(CacheFolder+RightStr(LeftStr(Filename, Length(Filename)-6),3)+'/'+Filename,'/','\',[rfReplaceall]);
+
+  // Is a Thumb being requested?
+  SearchIndex := StringReplace(F, '_tn.png','',[]);
+  SearchIndex := StringReplace(SearchIndex, '.png','',[]);
+  CacheFile := CacheFolder + Copy(SearchIndex,Length(SearchIndex)-5,3) + '/' + SearchIndex + '.png';
+  CacheFileThumb := CacheFolder + Copy(SearchIndex,Length(SearchIndex)-5,3) + '/' + SearchIndex + '_tn.png';
+  if Pos('_tn.', F) > 0 then
+  begin
+    ReturnThumb := True;
+    SearchFile := CacheFileThumb;
+  end
+  else
+  begin
+    ReturnThumb := False;
+    SearchFile := CacheFile;
+  end;
 
   // We've got a cache hit
-  if FileExists(CacheFile) then
+  if FileExists(SearchFile) then
   begin
-    CacheStatus := 'Hit';
+    SearchStatus := 'Hit';
     Result := TFileStream.Create(CacheFile, fmOpenRead);
   end
 
   // Cache miss
   else
   begin
-    CacheStatus := 'Miss';
+    SearchStatus := 'Miss';
 
     // Retrieve Image from Database
     {$Include sql\ai\imageai\imageai_retrieve.inc}
@@ -417,7 +437,7 @@ begin
     // If thumbnail is requested, that's fine, but the original is what is stored in the database
     // so let's get that first, and then generate the image and thumbnail cache, and then return whatever
     // was originally requested.
-    Query1.ParambyName('CHATID').AsString := StringReplace(Copy(Filename,1,Length(Filename) - 4),'_tn','',[]);
+    Query1.ParambyName('CHATID').AsString := SearchIndex;
     try
       Query1.Open;
     except on E: Exception do
@@ -444,30 +464,26 @@ begin
 
     // Save the binary file to the cache
     if (ForceDirectories(System.IOUtils.TPath.GetDirectoryName(CacheFile)))
-    then (Result as TMemoryStream).SaveToFile(StringReplace(CacheFile,'_tn','',[]));
+    then (Result as TMemoryStream).SaveToFile(CacheFile);
 
     // Create a thumbnail version: File > PNG > BMP > PNG > File
     ImageThumb := TPNGImage.Create;
-    ImageThumb.LoadFromFile(StringReplace(CacheFile,'_tn','',[]));
+    ImageThumb.LoadFromFile(CacheFile);
     ImageBitmap := TBitmap.Create;
     ImageBitmap.width := 92;
     ImageBitmap.height := 92;
     ImageBitmap.Canvas.StretchDraw(Rect(0,0,92,92), ImageThumb);
     ImageThumb.assign(ImageBitmap);
 
-    if Pos('_tn.',Filename) > 0 then
-    begin
-      ImageThumb.SaveToFile(CacheFile);
-      (Result as TMemoryStream).LoadFromFile(CacheFile);
-    end
-    else
-    begin
-      ImageThumb.SavetoFile(StringReplace(CacheFile,'.png','_tn.png',[]));
-    end;
+    ImageThumb.SaveToFile(CacheFileThumb);
+
+    if ReturnThumb
+    then (Result as TMemoryStream).LoadFromFile(CacheFileThumb);
 
     ImageThumb.Free;
     ImageBitmap.Free;
   end;
+
 
   // Keep track of endpoint history
   try
@@ -481,7 +497,7 @@ begin
     Query1.ParamByName('DATABASENAME').AsString := DatabaseName;
     Query1.ParamByName('DATABASEENGINE').AsString := DatabaseEngine;
     Query1.ParamByName('EXECUTIONMS').AsInteger := MillisecondsBetween(Now,ElapsedTime);
-    Query1.ParamByName('DETAILS').AsString := '['+Filename+']['+CacheStatus+']';
+    Query1.ParamByName('DETAILS').AsString := '['+F+']['+SearchStatus+']';
     Query1.ExecSQL;
   except on E: Exception do
     begin
@@ -524,7 +540,7 @@ begin
 
   // For image links, we'll need to point them to the GetChatImage Endpoint
   URL := TXdataOperationContext.current.Request.URI.AbsoluteURI;
-  URL := Copy(URL,1,Pos('GetChatInformation',URL)-1)+'GetChatImage?Filename=';
+  URL := Copy(URL,1,Pos('GetChatInformation',URL)-1)+'GetChatImage?F=';
 
   // Get data from the JWT
   User := TXDataOperationContext.Current.Request.User;
@@ -681,6 +697,7 @@ begin
   Response.Free;
 
 end;
+
 
 function TChatService.TrimConversation(var Conversation, Context: String; Limit: Integer):String;
 var

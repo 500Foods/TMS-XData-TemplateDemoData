@@ -52,7 +52,8 @@ type
     ///  <remarks>
     ///    No parameters here as the block of JSON is the same regardless.
     ///  </remarks>
-    [HttpGet] function GetChatImage(Filename: String):TStream;
+    [HttpGet] function GetChatImage(F: String):TStream;
+
   end;
 
 implementation
