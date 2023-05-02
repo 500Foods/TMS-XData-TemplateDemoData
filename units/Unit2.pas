@@ -57,6 +57,10 @@ type
     ChatModels: TStringList;
     AppCacheFolder: String;
 
+    AppIconsFolder: String;
+    AppIcons: TJSONArray;
+    AppIconSets: String;
+
     DatabaseName: String;
     DatabaseAlias: String;
     DatabaseEngine: String;
@@ -325,6 +329,14 @@ var
   CacheFolderFiles: String;
   CacheFolderSize: Double;
   CacheFolderList: TStringDynArray;
+  IconFiles: TStringDynArray;
+  IconFile: TStringList;
+  IconJSON: TJSONObject;
+  IconSets: TJSONArray;
+  IconWidth: Integer;
+  IconHeight: Integer;
+  IconCount: Integer;
+  IconTotal: Integer;
 begin
 
   tmrStart.Enabled := False;
@@ -497,6 +509,85 @@ begin
     end;
   end;
 
+
+  // Load up Icon Sets
+  if (AppConfiguration.GetValue('Icons') <> nil)
+  then AppIconsFolder := (AppConfiguration.GetValue('Icons') as TJSONString).Value
+  else AppIconsFolder := GetCurrentDir+'/icon-sets';
+  if RightStr(AppIconsFolder,1) <> '/'
+  then AppIconsFolder := AppIconsFolder + '/';
+  IconFiles := TDirectory.GetFiles(AppIconsFolder,'*.json',TsearchOption.soAllDirectories);
+
+  AppIcons := TJSONArray.Create;
+  IconSets := TJSONArray.Create;
+  IconCount := 0;
+  IconTotal := 0;
+
+  if length(IconFiles) = 0 then
+  begin
+    mmInfo.Lines.Add('...No Icon Sets Loaded: None Found.');
+  end
+  else
+  begin
+    mmInfo.Lines.Add('...Loading '+IntToStr(Length(IconFiles))+' Icon Sets:');
+    IconFile := TStringList.Create;
+
+    for i := 0 to Length(IconFiles)-1 do
+    begin
+      // Load JSON File
+      IconFile.LoadFromFile(IconFiles[i], TEncoding.UTF8);
+      IconJSON := TJSONObject.ParseJSONValue(IconFile.Text) as TJSONObject;
+      AppIcons.Add(IconJSON);
+
+      // Get Icon Count information
+      IconCount := (IconJSON.GetValue('icons') as TJSONObject).Count;
+      IconTotal := IconTotal + IconCount;
+
+      // Log what we're doing
+      mmInfo.Lines.Add('        ['+TPath.GetFileName(IconFiles[i])+'] '+
+        ((IconJSON.GetValue('info') as TJSONObject).GetValue('name') as TJSONString).Value+' - '+
+        IntToStr(IconCount)+' Icons');
+
+      // Sort out the default width and height.  This is either from the width and height properties
+      // found in the root of the JSON object, or in the info element, or perhaps not at all in the
+      // the case of the width property, in which case we'll assume it is the same as the height.
+      // We're doing this now as we're not passing back this information to the client, just the
+      // name, license, and icons, so the client will need this to properly generate the SVG data.
+      IconHeight := 0;
+      IconWidth := 0;
+      if IconJSON.GetValue('height') <> nil
+      then IconHeight := (IconJSON.GetValue('height') as TJSONNumber).AsInt
+      else if (IconJSON.GetValue('info') as TJSONObject).GetValue('height') <> nil
+           then IconHeight := ((IconJSON.GetValue('info') as TJSONObject).GetValue('height') as TJSONNumber).AsInt;
+      if IconJSON.GetValue('width') <> nil
+      then IconWidth := (IconJSON.GetValue('width') as TJSONNumber).AsInt
+      else if (IconJSON.GetValue('info') as TJSONObject).GetValue('width') <> nil
+           then IconWidth := ((IconJSON.GetValue('info') as TJSONObject).GetValue('width') as TJSONNumber).AsInt;
+      if IconWidth = 0 then IconWidth := IconHeight;
+
+      // Here we're building the JSON that we'll pass to the client telling them what icon sets are
+      // available, along with the other data they will need that is at the icon-set level
+      IconSets.add(TJSONObject.ParseJSONValue('{'+
+        '"name":"'+((IconJSON.GetValue('info') as TJSONObject).GetValue('name') as TJSONString).Value+'",'+
+        '"license":"'+(((IconJSON.GetValue('info') as TJSONObject).GetValue('license') as TJSONObject).GetValue('title') as TJSONString).Value+'",'+
+        '"width":'+IntToStr(IconWidth)+','+
+        '"height":'+IntToStr(IconHeight)+','+
+        '"count":'+IntToStr(IconCount)+','+
+        '"library":'+IntToStr(i)+
+        '}') as TJSONObject);
+
+      Application.ProcessMessages;
+    end;
+    IconFile.Free;
+  end;
+  mmInfo.Lines.Add('        Icons Loaded: '+FloatToStrF(IconTotal,ffNumber,10,0));
+
+  // We don't need to do anything else with this, so we'll store it as a string and
+  // then return just that when asked for this ata.
+  AppIconSets := IconSets.ToString;
+
+
+  mmInfo.Lines.Add('...Memory Usage: '+Format('%.1n',[GetMemoryUsage / 1024 / 1024])+' MB');
   mmInfo.Lines.Add('Done.');
   mmInfo.Lines.Add('');
 

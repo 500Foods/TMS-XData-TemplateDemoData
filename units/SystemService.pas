@@ -97,6 +97,41 @@ type
     ///    Client action log. Just a text log.
     ///  </param>
     [HttpPost] function Renew(ActionSession: String; ActionLog: String):TStream;
+
+    ///  <summary>
+    ///    List of Icon Sets that are available for search and retrieval
+    ///  </summary>
+    ///  <remarks>
+    ///    Returns a JSON array that includes the following.
+    ///    - Name of Icon Set
+    ///    - License Information
+    ///    - Count of Icons included in Set
+    ///    - Default Icon Width for Set
+    ///    - Default Icon Height for Set
+    ///
+    ///    The order of the array should be used to identify which sets are to be included or excluded when a search is requested.
+    ///  </remarks>
+    [HttpGet] function AvailableIconSets:TStream;
+
+    ///  <summary>
+    ///    Performs a search for icons, returing whatever icons were found as a JSON array.
+    ///  </summary>
+    ///  <remarks>
+    ///    The returned array is a JSON list of icons, including the SVG parts needed to build the icon.
+    ///  </remarks>
+    ///  <param name="SearchTerms">
+    ///    Up to three terms will be used in conducting the search.  Any more that are passed in will be ignored.
+    ///  </param>
+    ///  <param name="SearchSets">
+    ///    A comma-separated list of Icon Sets to search, where the number indicates the position in the array from AvailableIconSets.  A value of 'all' is also accepted, as this is likely the default search choice much of the time.
+    ///  </param>
+    ///  <param name="Results">
+    ///    Indicates how many icons are to be returned.  If conducting searches while someone is typing, this should be a much smaller number than if a more deliberate search is being performed.
+    ///  </param>
+    [HttpGet] function SearchIconSets(SearchTerms: String; SearchSets:String; Results:Integer):TStream;
+
+    [HttpGet] function SearchFontAwesome(Query: String):TStream;
+
   end;
 
 implementation

@@ -8,6 +8,10 @@ uses
   System.JSON,
   System.DateUtils,
 
+  System.Net.URLClient,
+  System.Net.HttpClientComponent,
+  System.Net.HttpClient,
+
   Sparkle.HttpSys.Server,
   Sparkle.Security,
 
@@ -37,6 +41,11 @@ type
     function Login(Login_ID: String; Password: String; API_Key: String; TZ: String):TStream;
     function Logout(ActionSession: String; ActionLog: String):TStream;
     function Renew(ActionSession: String; ActionLog: String):TStream;
+
+    function AvailableIconSets:TStream;
+    function SearchIconSets(SearchTerms: String; SearchSets:String; Results:Integer):TStream;
+    function SearchFontAwesome(Query: String):TStream;
+
   end;
 
 implementation
@@ -46,6 +55,14 @@ uses Unit1, Unit2, Unit3, TZDB;
 const
 //  JWT_PERIOD = 2;  // How long a JWT is valid for, in minutes
   JWT_PERIOD = 15;  // How long a JWT is valid for, in minutes
+
+function TSystemService.AvailableIconSets: TStream;
+begin
+  // Returning JSON, so flag it as such
+  TXDataOperationContext.Current.Response.Headers.SetValue('content-type', 'application/json');
+
+  Result := TStringStream.Create(MainForm.AppIconSets);
+end;
 
 function TSystemService.Info(TZ: String):TStream;
 var
@@ -846,6 +863,115 @@ begin
       raise EXDataHttpUnauthorized.Create('Internal Error: DQ');
     end;
   end;
+end;
+
+function TSystemService.SearchFontAwesome(Query: String): TStream;
+var
+  Client: TNetHTTPClient;
+  QStream: TStringStream;
+  Response: String;
+begin
+  QStream := TSTringStream.Create(Query);
+  Client := TNetHTTPClient.Create(nil);
+  Client.Asynchronous := False;
+  Client.ContentType := 'application/json';
+  Client.SecureProtocols := [THTTPSecureProtocol.SSL3, THTTPSecureProtocol.TLS12];
+  Response := Client.Post('https://api.fontawesome.com',QStream).ContentAsString;
+  Result := TStringStream.Create(Response);
+  Client.Free;
+  QStream.Free;
+end;
+
+function TSystemService.SearchIconSets(SearchTerms, SearchSets: String; Results: Integer): TStream;
+var
+  IconsFound: TJSONArray;
+  IconSet: TJSONObject;
+  IconSetList: TStringList;
+  i: integer;
+  j: integer;
+  k: integer;
+  IconName: String;
+  Icon: TJSONArray;
+  IconCount: Integer;
+  Terms:TStringList;
+  Matched: Boolean;
+begin
+  // Returning JSON, so flag it as such
+  TXDataOperationContext.Current.Response.Headers.SetValue('content-type', 'application/json');
+
+  // JSON Array we'll be returning
+  IconsFound := TJSONArray.Create;
+  IconCount := 0;
+
+  // If all, will just iterate through the sets
+  // Otherwise, we'll build a list and only iterate through the contents of that list
+  if SearchSets = 'all' then
+  begin
+    k := Mainform.AppIcons.Count;
+  end
+  else
+  begin
+    IconSetList := TStringList.Create;
+    IconSetList.CommaText := SearchSets;
+    k := IconSetList.Count;
+  end;
+
+  // Sort out Search Terms
+  Terms := TStringList.Create;
+  Terms.CommaText := StringReplace(Trim(SearchTerms),' ',',',[rfReplaceAll]);
+
+  i := 0;
+  while (i < k) and (IconCount < Results) and (Terms.Count > 0) do
+  begin
+
+    // Load up an Icon Set to Search
+    if SearchSets = 'all'
+    then IconSet := (MainForm.AppIcons.Items[i] as TJSONObject).GetValue('icons') as TJSONObject
+    else IconSet := (MainForm.AppIcons.Items[StrToInt(IconSetList[i])] as TJSONObject).GetValue('icons') as TJSONObject;
+
+    // Search all the icons in the Set
+    for j := 0 to IconSet.Count-1 do
+    begin
+
+      if (IconCount < Results) then
+      begin
+
+        IconName := (Iconset.Pairs[j].JSONString as TJSONString).Value;
+
+        // See if there is a match using the number of terms we have
+        Matched := False;
+        if Terms.Count = 1
+        then Matched := (Pos(Terms[0], IconName) > 0)
+        else if Terms.Count = 2
+             then Matched := (Pos(Terms[0], IconName) > 0) and (Pos(Terms[1], IconName) > 0)
+             else Matched := (Pos(Terms[0], IconName) > 0) and (Pos(Terms[1], IconName) > 0) and (Pos(Terms[2], IconName) > 0);
+
+        // Got a match
+        if Matched then
+        begin
+          Icon := TJSONArray.Create;
+          Icon.Add(IconName);
+
+          // Need to know what set it is in so we get lookup default width, height, license, set name
+          if SearchSets = 'all'
+          then Icon.Add(i)
+          else Icon.Add(IconSetList[i]);
+
+          // Add in the icon data - the SVG and width/height overrides
+          Icon.Add(IconSet.GetValue(IconName) as TJSONObject);
+
+          // Save to our set that we're returning
+          IconsFound.Add(Icon);
+          IconCount := IconCount + 1;
+        end;
+      end;
+    end;
+
+    i := i + 1;
+  end;
+
+  // Return the array of results
+  Result := TStringStream.Create(IconsFound.ToString);
 end;
 
 initialization
