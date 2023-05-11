@@ -7,13 +7,15 @@ In order for these endpoints to work, a number of configuration parameters must 
 ## OpenAI
 Here's what a configuration file might look like when using the OpenAI ChatGPT API.
 ```
-{
-  "Chat Interface": {
-    "Model":"gpt-3.5-turbo",
-    "Organization":"org-1234rpR1abcdVuQp1m6qPXYZ",
-    "API Key":"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",
-    "Chat Endpoint":"https://api.openai.com/v1/chat/completions",
-    "Image Endpoint":"https://api.openai.com/v1/images/generations"
-  }
-}
+  {
+      "Name": "ChatGPT 3.5",
+      "Default": true,
+      "Model": "gpt-3.5-turbo",
+      "Organization": "your-org-identifier-here",
+      "API Key": "your-api-key-here",
+      "Endpoint": "https://api.openai.com/v1/chat/completions",
+      "Limit": 4096,
+      "Cost Prompt": 0.000002,
+      "Cost Completion": 0.000002
+    }
 ```
