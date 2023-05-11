@@ -157,6 +157,8 @@ var
   JWTString: String;
   IssuedAt: TDateTime;
   ExpiresAt: TDateTime;
+//  DStr: String;
+//  DDate: TDateTime;
 
 begin
   // Returning JWT, so flag it as such
@@ -226,7 +228,23 @@ begin
     raise EXDataHttpUnauthorized.Create('API_Key was not validated.');
   end;
   ApplicationName := Query1.FieldByName('application').AsString;
-  if not(Query1.FieldByName('valid_until').isNull) and
+
+  // Invalid Date Conversin???
+//  DStr := Query1.FieldByName('valid_until').AsString;
+//  DDate := EncodeDateTime(
+//    StrToInt(Copy(DStr,1,4)),
+//    StrToInt(Copy(DStr,6,2)),
+//    StrToInt(Copy(DStr,9,2)),
+//    StrToInt(Copy(DStr,12,2)),
+//    StrToInt(Copy(DStr,15,2)),
+//    StrToInt(Copy(DStr,18,2)),
+//    0
+//  );
+//  if not(Query1.FieldByName('valid_until').IsNull) and
+//     (ExpiresAt > TTimeZone.Local.ToLocalTime(DDate))
+//  then ExpiresAt := TTimeZone.Local.ToLocalTime(DDate);
+
+  if not(Query1.FieldByName('valid_until').IsNull) and
      (ExpiresAt > TTimeZone.Local.ToLocalTime(Query1.FieldByName('valid_until').AsDateTime))
   then ExpiresAt := TTimeZone.Local.ToLocalTime(Query1.FieldByName('valid_until').AsDateTime);
 
@@ -343,12 +361,27 @@ begin
     DBSupport.DisconnectQuery(DBConn, Query1);
     raise EXDataHttpUnauthorized.Create('Login not authorized for this Username.');
   end;
-
+  MainForm.mmInfo.lines.add('G');
   // Login role is present, so let's make a note of the other roles
   Roles := '';
   while not(Query1.EOF) do
   begin
     Roles := Roles + Query1.FieldByName('role_id').AsString;
+
+    // Invalid Date Conversin???
+//    DStr := Query1.FieldByName('valid_until').AsString;
+//    DDate := EncodeDateTime(
+//      StrToInt(Copy(DStr,1,4)),
+//      StrToInt(Copy(DStr,6,2)),
+//      StrToInt(Copy(DStr,9,2)),
+//      StrToInt(Copy(DStr,12,2)),
+//      StrToInt(Copy(DStr,15,2)),
+//      StrToInt(Copy(DStr,18,2)),
+//      0
+//    );
+//    if not(Query1.FieldByName('valid_until').isNull) and
+//       (ExpiresAt > TTimeZone.Local.ToLocalTIme(DDate))
+//    then ExpiresAt := TTimeZone.Local.ToLocalTime(DDate);
 
     // Limit token validity of role expires before token expires
     if not(Query1.FieldByName('valid_until').isNull) and
@@ -501,7 +534,6 @@ begin
       raise EXDataHttpUnauthorized.Create('Internal Error: EHI');
     end;
   end;
-
 
   // All Done
   try  

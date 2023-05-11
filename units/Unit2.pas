@@ -112,6 +112,12 @@ var
   ConfigFile: TStringList;
 begin
 
+  // Let's use these internally for consistency
+  FormatSettings.DateSeparator   := '-';
+  FormatSettings.ShortDateFormat := 'yyyy-mm-dd';
+  FormatSettings.TimeSeparator   := ':';
+  FormatSettings.ShortTimeFormat := 'hh:nn:ss';
+
   // Get System Values
   AppName := GetAppName;
   AppVersion := GetAppVersion;
