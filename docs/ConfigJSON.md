@@ -11,7 +11,7 @@ This is used to set the BaseURL for the XData server.  For example, in a product
 Endpoints that return images, specifically the ChatService/GetChatImage endpoint, will generate a cache of any images requested from the database.  This may include both thumbnails as well as the original image stored in the database.  By default, a cache folder will be created in the same folder as the XData application when it first starts.  This behaviour can be overriden by setting a "Cache Folder" entry in the configuration. Eg: c:/data/cache.  Note carefully that the folders are specified using a forward slash.
 
 ### Chat Interface
-For the chat features of this project to work properly, appropriate API keys need to be provided in most cases (eg: OpenAI's ChatGPT offernings). The configuration JSON file is used to provide these keys, along with several other chat-related parameters, to the XData application. As there may very well be several chat interfaces provided, a JSON array is used in this case. An example is provided below.
+For the chat features of this project to work properly, appropriate API keys need to be provided in most cases (eg: OpenAI's ChatGPT offernings). The configuration JSON file is used to provide these keys, along with several other chat-related parameters, to the XData application. As there may very well be several chat interfaces provided, a JSON array is used in this case. An example is provided below. Please refer to the [ChatService documentation](https://github.com/500Foods/TMS-XData-TemplateDemoData/blob/main/docs/ChatService.md) for more detailed information.
 
 ### Example 
 
