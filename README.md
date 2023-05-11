@@ -28,8 +28,7 @@ Some services are also more complex, interfacing to other systems, as is the cas
 
 ## Documentation
 While the code is intended to be straightforward, and the blog is intended to be the primary introduction to this project, other documentation will be added as issues arise.  
-- Config.json
-
+- [Config.JSON](https://github.com/500Foods/TMS-XData-TemplateDemoData/blob/main/docs/ConfigJSON.md)
 
 ## Key Dependencies
 As with any modern application, other libraries/dependencies have been used in this project.
