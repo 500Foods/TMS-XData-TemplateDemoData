@@ -113,11 +113,11 @@
         <DCC_OutputXMLDocumentation>true</DCC_OutputXMLDocumentation>
         <DCC_XmlOutput>Win64\Debug\</DCC_XmlOutput>
         <UWP_DelphiLogo150>TDD.png</UWP_DelphiLogo150>
-        <PostBuildEvent><![CDATA[copy RandomDLL.dll "$(OUTPUTDIR)"
+        <PostBuildEvent><![CDATA[copy /Y RandomDLL.dll "$(OUTPUTDIR)"
 mkdir "$(OUTPUTDIR)ddl"
 mkdir "$(OUTPUTDIR)ddl\photo"
 mkdir "$(OUTPUTDIR)ddl\photo\data"
-copy ddl\photo\data\* "$(OUTPUTDIR)ddl\photo\data"
+copy /Y .\ddl\photo\data\*.* "$(OUTPUTDIR)ddl\photo\data"
 $(PostBuildEvent)]]></PostBuildEvent>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
@@ -326,7 +326,7 @@ $(PostBuildEvent)]]></PostBuildEvent>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="ddl\chatai_history\chatai_history_sqlite.inc" Configuration="Release" Class="ProjectFile">
+                <DeployFile LocalName="sql\system\contact_email\contact_email_sqlite.inc" Configuration="Release" Class="ProjectFile">
                     <Platform Name="Win64">
                         <RemoteDir>.\</RemoteDir>
                         <Overwrite>true</Overwrite>
@@ -338,7 +338,7 @@ $(PostBuildEvent)]]></PostBuildEvent>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="sql\system\contact_email\contact_email_sqlite.inc" Configuration="Release" Class="ProjectFile">
+                <DeployFile LocalName="ddl\chatai_history\chatai_history_sqlite.inc" Configuration="Release" Class="ProjectFile">
                     <Platform Name="Win64">
                         <RemoteDir>.\</RemoteDir>
                         <Overwrite>true</Overwrite>
@@ -1634,7 +1634,7 @@ $(PostBuildEvent)]]></PostBuildEvent>
         <PreBuildEventIgnoreExitCode>False</PreBuildEventIgnoreExitCode>
         <PreLinkEvent/>
         <PreLinkEventIgnoreExitCode>False</PreLinkEventIgnoreExitCode>
-        <PostBuildEvent>copy RandomDLL.dll &quot;$(OUTPUTDIR)&quot;&amp;&amp;mkdir &quot;$(OUTPUTDIR)ddl&quot;&amp;&amp;mkdir &quot;$(OUTPUTDIR)ddl\photo&quot;&amp;&amp;mkdir &quot;$(OUTPUTDIR)ddl\photo\data&quot;&amp;&amp;copy ddl\photo\data\* &quot;$(OUTPUTDIR)ddl\photo\data&quot;</PostBuildEvent>
+        <PostBuildEvent>copy /Y RandomDLL.dll &quot;$(OUTPUTDIR)&quot;&amp;&amp;mkdir &quot;$(OUTPUTDIR)ddl&quot;&amp;&amp;mkdir &quot;$(OUTPUTDIR)ddl\photo&quot;&amp;&amp;mkdir &quot;$(OUTPUTDIR)ddl\photo\data&quot;&amp;&amp;copy /Y .\ddl\photo\data\*.* &quot;$(OUTPUTDIR)ddl\photo\data&quot;</PostBuildEvent>
         <PostBuildEventIgnoreExitCode>False</PostBuildEventIgnoreExitCode>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='Release' And '$(Platform)'=='Win64'">

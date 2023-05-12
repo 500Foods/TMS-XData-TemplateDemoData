@@ -20,7 +20,7 @@ object MainForm: TMainForm
   TextHeight = 13
   object mmInfo: TMemo
     Left = 8
-    Top = 40
+    Top = 39
     Width = 727
     Height = 454
     Anchors = [akLeft, akTop, akRight, akBottom]
@@ -74,7 +74,13 @@ object MainForm: TMainForm
   object tmrStart: TTimer
     Enabled = False
     OnTimer = tmrStartTimer
-    Left = 520
-    Top = 208
+    Left = 440
+    Top = 240
+  end
+  object tmrInit: TTimer
+    Enabled = False
+    OnTimer = tmrInitTimer
+    Left = 352
+    Top = 240
   end
 end

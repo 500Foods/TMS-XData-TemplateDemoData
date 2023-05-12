@@ -24,6 +24,7 @@ type
     FDPhysSQLiteDriverLink1: TFDPhysSQLiteDriverLink;
     Query1: TFDQuery;
     tmrStart: TTimer;
+    tmrInit: TTimer;
     procedure btStartClick(ASender: TObject);
     procedure btStopClick(ASender: TObject);
     procedure FormCreate(ASender: TObject);
@@ -41,6 +42,7 @@ type
     procedure btSwaggerClick(Sender: TObject);
     procedure tmrStartTimer(Sender: TObject);
     procedure FormShow(Sender: TObject);
+    procedure tmrInitTimer(Sender: TObject);
   public
     AppName: String;
     AppVersion: String;
@@ -107,80 +109,8 @@ begin
 end;
 
 procedure TMainForm.FormCreate(ASender: TObject);
-var
-  i: Integer;
-  ConfigFile: TStringList;
 begin
-
-  // Let's use these internally for consistency
-  FormatSettings.DateSeparator   := '-';
-  FormatSettings.ShortDateFormat := 'yyyy-mm-dd';
-  FormatSettings.TimeSeparator   := ':';
-  FormatSettings.ShortTimeFormat := 'hh:nn:ss';
-
-  // Get System Values
-  AppName := GetAppName;
-  AppVersion := GetAppVersion;
-  AppRelease := GetAppRelease;
-  AppReleaseUTC := GetAppReleaseUTC;
-  AppFileName := GetAppFileName;
-  AppFileSize := GetAppFileSize;
-  AppTimeZone := GetAppTimeZone;
-  AppTimeZoneOffset := GetAppTimeZoneOffset;
-
-  // List of App Parameters
-  AppParameters := TStringList.Create;
-  AppParameters.QuoteChar := ' ';
-  GetAppParameters(AppParameters);
-
-  // List of IP Addresses
-  IPAddresses := TStringList.Create;
-  IPAddresses.QuoteChar := ' ';
-  GetIPAddresses(IPAddresses);
-
-  // Load JSON Configuration
-  mmINfo.Lines.Add('Loading Configuration ...');
-  AppConfigFile := StringReplace(ExtractFileName(ParamStr(0)),'exe','json',[]);
-  i := 0;
-  while i < AppParameters.Count do
-  begin
-    if Pos('"CONFIG=',UpperCase(AppParameters[i])) = 1
-    then AppConfigFile  := Copy(AppParameters[i],9,length(AppParameters[i])-9);
-    i := i + 1;
-  end;
-  ConfigFile := TStringList.Create;
-  if FileExists(AppConfigFile) then
-  begin
-    try
-      ConfigFile.LoadFromFile(AppConfigFile);
-      mmInfo.Lines.Add('...Configuration File Loaded: '+AppConfigFile);
-      AppConfiguration := TJSONObject.ParseJSONValue(ConfigFile.Text) as TJSONObject;
-    except on E: Exception do
-      begin
-        mmInfo.Lines.Add('...Configuration File Error: '+AppConfigFile);
-        mmInfo.Lines.Add('...['+E.ClassName+'] '+E.Message);
-      end;
-    end;
-  end
-  else // File doesn't exist
-  begin
-    mmInfo.Lines.Add('...Configuration File Not Found: '+AppConfigFile);
-  end;
-  ConfigFile.Free;
-
-  if Appconfiguration = nil then
-  begin
-    // Create an empty AppConfiguration
-    mmInfo.Lines.Add('...Using Default Configuration');
-    AppConfiguration := TJSONObject.Create;
-    AppConfiguration.AddPair('BaseURL','http://+:12345/tms/xdata');
-  end;
-  mmInfo.Lines.Add('Done.');
-  mmInfo.Lines.Add('');
-
-  ServerContainer.XDataServer.BaseURL := (AppConfiguration.getValue('BaseURL') as TJSONString).Value;
-
-  tmrStart.Enabled := True;
+  tmrInit.Enabled := True;
 end;
 
 procedure TMainForm.FormShow(Sender: TObject);
@@ -326,6 +256,87 @@ begin
 end;
 
 
+procedure TMainForm.tmrInitTimer(Sender: TObject);
+var
+  i: Integer;
+  ConfigFile: TStringList;
+begin
+  tmrInit.Enabled := False;
+
+  // Let's use these internally for consistency
+  FormatSettings.DateSeparator   := '-';
+  FormatSettings.ShortDateFormat := 'yyyy-mm-dd';
+  FormatSettings.TimeSeparator   := ':';
+  FormatSettings.ShortTimeFormat := 'hh:nn:ss';
+
+  // Get System Values
+  AppName := GetAppName;
+  AppVersion := GetAppVersion;
+  AppRelease := GetAppRelease;
+  AppReleaseUTC := GetAppReleaseUTC;
+  AppFileName := GetAppFileName;
+  AppFileSize := GetAppFileSize;
+  AppTimeZone := GetAppTimeZone;
+  AppTimeZoneOffset := GetAppTimeZoneOffset;
+
+  // List of App Parameters
+  AppParameters := TStringList.Create;
+  AppParameters.QuoteChar := ' ';
+  GetAppParameters(AppParameters);
+
+  // List of IP Addresses
+  IPAddresses := TStringList.Create;
+  IPAddresses.QuoteChar := ' ';
+  GetIPAddresses(IPAddresses);
+
+  // Load JSON Configuration
+  mmINfo.Lines.Add('Loading Configuration ...');
+  AppConfigFile := StringReplace(ExtractFileName(ParamStr(0)),'exe','json',[]);
+  i := 0;
+  while i < AppParameters.Count do
+  begin
+    if Pos('"CONFIG=',UpperCase(AppParameters[i])) = 1
+    then AppConfigFile  := Copy(AppParameters[i],9,length(AppParameters[i])-9);
+    i := i + 1;
+  end;
+  ConfigFile := TStringList.Create;
+  if FileExists(AppConfigFile) then
+  begin
+    try
+      ConfigFile.LoadFromFile(AppConfigFile);
+      mmInfo.Lines.Add('...Configuration File Loaded: '+AppConfigFile);
+      AppConfiguration := TJSONObject.ParseJSONValue(ConfigFile.Text) as TJSONObject;
+    except on E: Exception do
+      begin
+        mmInfo.Lines.Add('...Configuration File Error: '+AppConfigFile);
+        mmInfo.Lines.Add('...['+E.ClassName+'] '+E.Message);
+      end;
+    end;
+  end
+  else // File doesn't exist
+  begin
+    mmInfo.Lines.Add('...Configuration File Not Found: '+AppConfigFile);
+  end;
+  ConfigFile.Free;
+  Application.ProcessMessages;
+
+  if Appconfiguration = nil then
+  begin
+    // Create an empty AppConfiguration
+    mmInfo.Lines.Add('...Using Default Configuration');
+    AppConfiguration := TJSONObject.Create;
+    AppConfiguration.AddPair('BaseURL','http://+:12345/tms/xdata');
+  end;
+  mmInfo.Lines.Add('Done.');
+  mmInfo.Lines.Add('');
+  Application.ProcessMessages;
+
+  ServerContainer.XDataServer.BaseURL := (AppConfiguration.getValue('BaseURL') as TJSONString).Value;
+
+  tmrStart.Enabled := True;
+
+end;
+
 procedure TMainForm.tmrStartTimer(Sender: TObject);
 var
   i: Integer;
@@ -425,23 +436,41 @@ begin
   Query1.Connection := DBConn;
   mmInfo.Lines.Add('...['+DatabaseEngine+'] '+DatabaseName);
 
+  Application.ProcessMessages;
+
   // Create and populate tables
   {$Include ddl\person\person.inc}
+  Application.ProcessMessages;
   {$Include ddl\role\role.inc}
+  Application.ProcessMessages;
   {$Include ddl\person_role\person_role.inc}
+  Application.ProcessMessages;
   {$Include ddl\api_key\api_key.inc}
+  Application.ProcessMessages;
   {$Include ddl\contact\contact.inc}
+  Application.ProcessMessages;
   {$Include ddl\endpoint_history\endpoint_history.inc}
+  Application.ProcessMessages;
   {$Include ddl\ip_allow\ip_allow.inc}
+  Application.ProcessMessages;
   {$Include ddl\ip_block\ip_block.inc}
+  Application.ProcessMessages;
   {$Include ddl\list\list.inc}
+  Application.ProcessMessages;
   {$Include ddl\login_fail\login_fail.inc}
+  Application.ProcessMessages;
   {$Include ddl\login_history\login_history.inc}
+  Application.ProcessMessages;
   {$Include ddl\token\token.inc}
+  Application.ProcessMessages;
   {$Include ddl\photo\photo.inc}
+  Application.ProcessMessages;
   {$Include ddl\action_history\action_history.inc}
+  Application.ProcessMessages;
   {$Include ddl\chatai_history\chatai_history.inc}
+  Application.ProcessMessages;
   {$Include ddl\imageai_history\imageai_history.inc}
+  Application.ProcessMessages;
 
   mmInfo.Lines.Add('Done.');
   mmInfo.Lines.Add('');
