@@ -8,6 +8,8 @@ uses
   System.JSON,
   System.DateUtils,
 
+  System.Generics.Collections,
+
   System.Net.URLClient,
   System.Net.HttpClientComponent,
   System.Net.HttpClient,
@@ -937,13 +939,13 @@ begin
 
   // If all, will just iterate through the sets
   // Otherwise, we'll build a list and only iterate through the contents of that list
+  IconSetList := TStringList.Create;
   if SearchSets = 'all' then
   begin
     k := Mainform.AppIcons.Count;
   end
   else
   begin
-    IconSetList := TStringList.Create;
     IconSetList.CommaText := SearchSets;
     k := IconSetList.Count;
   end;
@@ -971,7 +973,6 @@ begin
         IconName := (Iconset.Pairs[j].JSONString as TJSONString).Value;
 
         // See if there is a match using the number of terms we have
-        Matched := False;
         if Terms.Count = 1
         then Matched := (Pos(Terms[0], IconName) > 0)
         else if Terms.Count = 2

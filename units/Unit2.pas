@@ -522,11 +522,11 @@ begin
   else AppIconsFolder := GetCurrentDir+'/icon-sets';
   if RightStr(AppIconsFolder,1) <> '/'
   then AppIconsFolder := AppIconsFolder + '/';
+  ForceDirectories(AppIconsFolder);
   IconFiles := TDirectory.GetFiles(AppIconsFolder,'*.json',TsearchOption.soAllDirectories);
 
   AppIcons := TJSONArray.Create;
   IconSets := TJSONArray.Create;
-  IconCount := 0;
   IconTotal := 0;
 
   if length(IconFiles) = 0 then

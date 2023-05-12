@@ -111,7 +111,14 @@
         <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.1;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
         <Debugger_RunParams>DB=c:\data\DemoData.sqlite</Debugger_RunParams>
         <DCC_OutputXMLDocumentation>true</DCC_OutputXMLDocumentation>
-        <DCC_XmlOutput>C:\Users\Andrew Simard\Documents\Embarcadero\Studio\Projects\TMS-XData-TemplateDemoData\Win64\Debug\</DCC_XmlOutput>
+        <DCC_XmlOutput>Win64\Debug\</DCC_XmlOutput>
+        <UWP_DelphiLogo150>TDD.png</UWP_DelphiLogo150>
+        <PostBuildEvent><![CDATA[copy RandomDLL.dll "$(OUTPUTDIR)"
+mkdir "$(OUTPUTDIR)ddl"
+mkdir "$(OUTPUTDIR)ddl\photo"
+mkdir "$(OUTPUTDIR)ddl\photo\data"
+copy ddl\photo\data\* "$(OUTPUTDIR)ddl\photo\data"
+$(PostBuildEvent)]]></PostBuildEvent>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
         <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
@@ -130,17 +137,21 @@
         <AppEnableRuntimeThemes>true</AppEnableRuntimeThemes>
         <AppDPIAwarenessMode>PerMonitorV2</AppDPIAwarenessMode>
         <DCC_OutputXMLDocumentation>true</DCC_OutputXMLDocumentation>
-        <DCC_XmlOutput>C:\Users\Andrew Simard\Documents\Embarcadero\Studio\Projects\TMS-XData-TemplateDemoData\Win64\Release\</DCC_XmlOutput>
+        <DCC_XmlOutput>Win64\Release\</DCC_XmlOutput>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_Locale>1033</VerInfo_Locale>
-        <Debugger_RunParams>DBNAME=C:\Data\DemoData.sqlite CONFIG=C:\Data\Config.json</Debugger_RunParams>
-        <PostBuildEvent><![CDATA[copy RandomDLL.dll "$(OUTPUTDIR)"
+        <PostBuildEvent><![CDATA[copy /Y RandomDLL.dll "$(OUTPUTDIR)"
+mkdir "$(OUTPUTDIR)ddl"
+mkdir "$(OUTPUTDIR)ddl\photo"
+mkdir "$(OUTPUTDIR)ddl\photo\data"
+copy /Y .\ddl\photo\data\*.* "$(OUTPUTDIR)ddl\photo\data"
 $(PostBuildEvent)]]></PostBuildEvent>
         <VerInfo_AutoIncVersion>true</VerInfo_AutoIncVersion>
-        <VerInfo_Build>7</VerInfo_Build>
-        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.7;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
+        <VerInfo_Build>10</VerInfo_Build>
+        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.10;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
         <Icon_MainIcon>Project1_Icon1.ico</Icon_MainIcon>
         <UWP_DelphiLogo150>TDD.png</UWP_DelphiLogo150>
+        <PostBuildEventCancelOnError>false</PostBuildEventCancelOnError>
     </PropertyGroup>
     <ItemGroup>
         <DelphiCompile Include="$(MainSource)">
@@ -265,6 +276,7 @@ $(PostBuildEvent)]]></PostBuildEvent>
         <None Include="sql\ai\chatai\chatai_recent_sqlite.inc"/>
         <None Include="sql\ai\imageai\imageai_retrieve.inc"/>
         <None Include="sql\ai\imageai\imageai_retrieve_sqlite.inc"/>
+        <None Include="ddl\photo\data\1.txt"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
@@ -381,6 +393,12 @@ $(PostBuildEvent)]]></PostBuildEvent>
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="sql\person\login_recent\login_recent_sqlite.inc" Configuration="Release" Class="ProjectFile">
+                    <Platform Name="Win64">
+                        <RemoteDir>.\</RemoteDir>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
+                <DeployFile LocalName="ddl\photo\data\1.txt" Configuration="Release" Class="ProjectFile">
                     <Platform Name="Win64">
                         <RemoteDir>.\</RemoteDir>
                         <Overwrite>true</Overwrite>
@@ -1611,12 +1629,20 @@ $(PostBuildEvent)]]></PostBuildEvent>
     <Import Project="$(BDS)\Bin\CodeGear.Delphi.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Delphi.Targets')"/>
     <Import Project="$(APPDATA)\Embarcadero\$(BDSAPPDATABASEDIR)\$(PRODUCTVERSION)\UserTools.proj" Condition="Exists('$(APPDATA)\Embarcadero\$(BDSAPPDATABASEDIR)\$(PRODUCTVERSION)\UserTools.proj')"/>
     <Import Project="$(MSBuildProjectName).deployproj" Condition="Exists('$(MSBuildProjectName).deployproj')"/>
+    <PropertyGroup Condition="'$(Config)'=='Debug' And '$(Platform)'=='Win64'">
+        <PreBuildEvent/>
+        <PreBuildEventIgnoreExitCode>False</PreBuildEventIgnoreExitCode>
+        <PreLinkEvent/>
+        <PreLinkEventIgnoreExitCode>False</PreLinkEventIgnoreExitCode>
+        <PostBuildEvent>copy RandomDLL.dll &quot;$(OUTPUTDIR)&quot;&amp;&amp;mkdir &quot;$(OUTPUTDIR)ddl&quot;&amp;&amp;mkdir &quot;$(OUTPUTDIR)ddl\photo&quot;&amp;&amp;mkdir &quot;$(OUTPUTDIR)ddl\photo\data&quot;&amp;&amp;copy ddl\photo\data\* &quot;$(OUTPUTDIR)ddl\photo\data&quot;</PostBuildEvent>
+        <PostBuildEventIgnoreExitCode>False</PostBuildEventIgnoreExitCode>
+    </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='Release' And '$(Platform)'=='Win64'">
         <PreBuildEvent/>
         <PreBuildEventIgnoreExitCode>False</PreBuildEventIgnoreExitCode>
         <PreLinkEvent/>
         <PreLinkEventIgnoreExitCode>False</PreLinkEventIgnoreExitCode>
-        <PostBuildEvent>copy RandomDLL.dll &quot;$(OUTPUTDIR)&quot;</PostBuildEvent>
-        <PostBuildEventIgnoreExitCode>False</PostBuildEventIgnoreExitCode>
+        <PostBuildEvent>copy /Y RandomDLL.dll &quot;$(OUTPUTDIR)&quot;&amp;mkdir &quot;$(OUTPUTDIR)ddl&quot;&amp;mkdir &quot;$(OUTPUTDIR)ddl\photo&quot;&amp;mkdir &quot;$(OUTPUTDIR)ddl\photo\data&quot;&amp;copy /Y .\ddl\photo\data\*.* &quot;$(OUTPUTDIR)ddl\photo\data&quot;</PostBuildEvent>
+        <PostBuildEventIgnoreExitCode>True</PostBuildEventIgnoreExitCode>
     </PropertyGroup>
 </Project>
