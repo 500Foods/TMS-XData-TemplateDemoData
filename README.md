@@ -26,6 +26,10 @@ Some services are also more complex, interfacing to other systems, as is the cas
 * [Person Service](https://github.com/500Foods/TMS-XData-TemplateDemoData/blob/main/docs/PersonService.md)
 * [System Service](https://github.com/500Foods/TMS-XData-TemplateDemoData/blob/main/docs/SystemService.md)
 
+## Documentation
+While the code is intended to be straightforward, and the blog is intended to be the primary introduction to this project, other documentation will be added as issues arise.  
+- [Config.JSON](https://github.com/500Foods/TMS-XData-TemplateDemoData/blob/main/docs/ConfigJSON.md)
+
 ## Key Dependencies
 As with any modern application, other libraries/dependencies have been used in this project.
 - [TMS XData](https://www.tmssoftware.com/site/tmswebcore.asp) - This is a TMS XData project, after all
