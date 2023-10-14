@@ -42,5 +42,19 @@ This DLL needs to be included in the same folder as the project executable. It i
 ## Contributions
 Initially, this example uses SQLite as its database, as well as a collection of include files for all of the SQL operations that have been implemented so far.  Over time, this will be expanded to include support for more databases and more queries.  If there's a database you'd like to see included in the template, by all means please post an Issue or, if you're able, make a Pull Request and we'll see that it gets added.
 
+## Repository Information
+[![Count Lines of Code](https://github.com/500Foods/TMS-XData-TemplateDemoData/actions/workflows/main.yml/badge.svg)](https://github.com/500Foods/TMS-XData-TemplateDemoData/actions/workflows/main.yml)
+```
+-------------------------------------------------------------------------------
+Language                     files          blank        comment           code
+-------------------------------------------------------------------------------
+Pascal                          13           1372           2638          12091
+Markdown                         6             24              0            136
+Delphi Form                      3              0              0            133
+YAML                             2              4              8             15
+-------------------------------------------------------------------------------
+SUM:                            24           1400           2646          12375
+-------------------------------------------------------------------------------
+```
 ## Sponsor / Donate / Support
 If you find this work interesting, helpful, or useful, or that it has sved you time, money, or both, please consider direclty supporting these efforts financially via [GitHub Sponsors](https://github.com/sponsors/500Foods) or donating via [Buy Me a Pizza](https://www.buymeacoffee.com/andrewsimard500). Also, be sure to check out these other [GitHub Repositories](https://github.com/500Foods?tab=repositories&q=&sort=stargazers) that may be of interest to you.
