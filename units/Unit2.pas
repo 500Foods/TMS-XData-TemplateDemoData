@@ -326,12 +326,17 @@ begin
     mmInfo.Lines.Add('...Using Default Configuration');
     AppConfiguration := TJSONObject.Create;
     AppConfiguration.AddPair('BaseURL','http://+:12345/tms/xdata');
+    AppConfiguration.AddPair('ServerName','TMS XData Template: Demo Data');
   end;
   mmInfo.Lines.Add('Done.');
   mmInfo.Lines.Add('');
   Application.ProcessMessages;
 
-  ServerContainer.XDataServer.BaseURL := (AppConfiguration.getValue('BaseURL') as TJSONString).Value;
+  if AppConfiguration.getValue('BaseURL') <> nil
+  then ServerContainer.XDataServer.BaseURL := (AppConfiguration.getValue('BaseURL') as TJSONString).Value;
+
+  if AppConfiguration.getValue('ServerName') <> nil
+  then Caption := (AppConfiguration.getValue('ServerName') as TJSONString).Value;
 
   tmrStart.Enabled := True;
 
