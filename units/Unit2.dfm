@@ -57,6 +57,15 @@ object MainForm: TMainForm
     TabOrder = 3
     OnClick = btSwaggerClick
   end
+  object btRedoc: TButton
+    Left = 252
+    Top = 8
+    Width = 75
+    Height = 25
+    Caption = 'Redoc'
+    TabOrder = 4
+    OnClick = btRedocClick
+  end
   object DBConn: TFDConnection
     FormatOptions.AssignedValues = [fvMaxStringSize]
     Left = 520

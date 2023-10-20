@@ -17,6 +17,7 @@ object ServerContainer: TServerContainer
     SwaggerUIOptions.Enabled = True
     SwaggerUIOptions.ShowFilter = True
     SwaggerUIOptions.TryItOutEnabled = True
+    RedocOptions.Enabled = True
     Left = 216
     Top = 16
     object XDataServerJWT: TSparkleJwtMiddleware

@@ -25,6 +25,7 @@ type
     Query1: TFDQuery;
     tmrStart: TTimer;
     tmrInit: TTimer;
+    btRedoc: TButton;
     procedure btStartClick(ASender: TObject);
     procedure btStopClick(ASender: TObject);
     procedure FormCreate(ASender: TObject);
@@ -43,6 +44,7 @@ type
     procedure tmrStartTimer(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure tmrInitTimer(Sender: TObject);
+    procedure btRedocClick(Sender: TObject);
   public
     AppName: String;
     AppVersion: String;
@@ -82,6 +84,19 @@ implementation
 {$R *.dfm}
 
 { TMainForm }
+
+procedure TMainForm.btRedocClick(Sender: TObject);
+var
+  url: String;
+const
+  cHttp = '://+';
+  cHttpLocalhost = '://localhost';
+begin
+  url := StringReplace(
+      ServerContainer.XDataServer.BaseUrl,
+      cHttp, cHttpLocalhost, [rfIgnoreCase])+'/redoc';
+  ShellExecute(0, 'open', PChar(url), nil, nil, SW_SHOWNORMAL);
+end;
 
 procedure TMainForm.btStartClick(ASender: TObject);
 begin
