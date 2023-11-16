@@ -16,6 +16,9 @@ Endpoints that return images, specifically the ChatService/GetChatImage endpoint
 ### Chat Interface
 For the chat features of this project to work properly, appropriate API keys need to be provided in most cases (eg: OpenAI's ChatGPT offernings). The configuration JSON file is used to provide these keys, along with several other chat-related parameters, to the XData application. As there may very well be several chat interfaces provided, a JSON array is used in this case. An example is provided below. Please refer to the [ChatService documentation](https://github.com/500Foods/TMS-XData-TemplateDemoData/blob/main/docs/ChatService.md) for more detailed information.
 
+## Mail Services
+In order for notification e-mails to be sent, an SMTP mail server needs to be specified along with an account used to log in to that server for submitting e-mails. In addition, a separate e-mail address/name is used for addressing the e-mails.
+
 ### Example 
 
 Here is an example JSON configuration file.
@@ -89,6 +92,14 @@ Here is an example JSON configuration file.
       "Limit": 1000,
       "Cost": 0.02
     }
-  ]
+  ],
+  "Mail Services":{
+    "SMTP Host":"mail.example.com",
+    "SMTP Port":587,
+    "SMTP User":"username.domain",
+    "SMTP Pass":"kJkh3oaDfwk7A8A",
+    "SMTP From":"concierge@example.com",
+    "SMTP Name":"Example Concierge"
+  }
 }
 ```
