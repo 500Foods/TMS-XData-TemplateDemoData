@@ -147,8 +147,8 @@ mkdir "$(OUTPUTDIR)ddl\photo\data"
 copy /Y .\ddl\photo\data\*.* "$(OUTPUTDIR)ddl\photo\data"
 $(PostBuildEvent)]]></PostBuildEvent>
         <VerInfo_AutoIncVersion>true</VerInfo_AutoIncVersion>
-        <VerInfo_Build>14</VerInfo_Build>
-        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.14;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
+        <VerInfo_Build>15</VerInfo_Build>
+        <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.15;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
         <Icon_MainIcon>Project1_Icon1.ico</Icon_MainIcon>
         <UWP_DelphiLogo150>TDD.png</UWP_DelphiLogo150>
         <PostBuildEventCancelOnError>false</PostBuildEventCancelOnError>

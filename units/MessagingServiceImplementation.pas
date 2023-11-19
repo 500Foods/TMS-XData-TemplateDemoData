@@ -47,7 +47,6 @@ type
     function Callback(Incoming: TStream):TStream;
     function Fallback(Incoming: TStream):TStream;
     function SendAMessage(MessageService: String; Destination: String; AMessage: String):TStream;
-    function GetMessages(Destination: String; Since: String):TStream;
   end;
 
 implementation
@@ -157,13 +156,13 @@ begin
 //  MainForm.LogEvent(SignatureGEN);
 
   // Not authenticated
-//  if (SignatureGEN <> Signature) then
-//  begin
-////    MainForm.LogEvent('Signature NOT Matched');
-//    Request.Free;
-//    Processed.Free;
-//    raise EXDataHttpUnauthorized.Create('Invalid Signature Detected');
-//  end;
+  if (SignatureGEN <> Signature) then
+  begin
+//    MainForm.LogEvent('Signature NOT Matched');
+    Request.Free;
+    Processed.Free;
+    raise EXDataHttpUnauthorized.Create('Invalid Signature Detected');
+  end;
 //  MainForm.LogEvent('Signature Matched');
 
   // Setup DB connection and query
@@ -298,15 +297,247 @@ begin
 end;
 
 function TMessagingService.Fallback(Incoming: TStream):TStream;
+var
+  i: Integer;
+  Request: TStringList;
+  Processed: TStringList;
+  Response: TStringList;
+
+  Signature: String;
+  SignatureGEN: String;
+  SignatureURL: String;
+  SignaturePAR: String;
+  SignatureTOK: String;
+
+  DBConn: TFDConnection;
+  Query1: TFDQuery;
+  DatabaseName: String;
+  DatabaseEngine: String;
+  ElapsedTime: TDateTime;
+
+  ServiceName: String;
+  AccountNumber: String;
+  AuthToken: String;
+  FallbackURL: String;
+  FieldName: String;
+  FieldValue: String;
+  AddOns: TJSONObject;
+
+  function GenerateSignature(aURL, aParameterList, aKey: String):String;
+  begin
+     with TIdHMACSHA1.Create do
+     try
+       Key := ToBytes(aKey);
+       Result := TIdEncoderMIME.EncodeBytes(HashValue(ToBytes(aURL+aParameterList)));
+     finally
+       Free;
+     end;
+  end;
 
 begin
-//
-end;
+  ElapsedTime := Now;
+  
+  // Get Messaging System Configuration
+  ServiceName := '';
+  AccountNumber := '';
+  AuthToken := '';
+  FallbackURL := '';
+  if (MainForm.AppConfiguration.GetValue('Messaging Services') <> nil) then
+  begin
+    if ((MainForm.AppConfiguration.GetValue('Messaging Services') as TJSONObject).GetValue('Twilio') <> nil) then
+    begin
+      if (((MainForm.AppConfiguration.GetValue('Messaging Services') as TJSONObject).GetValue('Twilio') as TJSONObject).GetValue('Service Name') <> nil) 
+      then ServiceName := (((MainForm.AppConfiguration.GetValue('Messaging Services') as TJSONObject).GetValue('Twilio') as TJSONObject).GetValue('Service Name') as TJSONString).Value
+      else raise EXDataHttpUnauthorized.Create('Invalid Messaging System Configuration: Service Name');
+      
+      if (((MainForm.AppConfiguration.GetValue('Messaging Services') as TJSONObject).GetValue('Twilio') as TJSONObject).GetValue('Auth Token') <> nil) 
+      then AuthToken := (((MainForm.AppConfiguration.GetValue('Messaging Services') as TJSONObject).GetValue('Twilio') as TJSONObject).GetValue('Auth Token') as TJSONString).Value
+      else raise EXDataHttpUnauthorized.Create('Invalid Messaging System Configuration: Auth Token');
 
-function TMessagingService.GetMessages(Destination,
-  Since: String): TStream;
-begin
-//
+      if (((MainForm.AppConfiguration.GetValue('Messaging Services') as TJSONObject).GetValue('Twilio') as TJSONObject).GetValue('Account') <> nil) 
+      then AccountNumber := (((MainForm.AppConfiguration.GetValue('Messaging Services') as TJSONObject).GetValue('Twilio') as TJSONObject).GetValue('Account') as TJSONString).Value
+      else raise EXDataHttpUnauthorized.Create('Invalid Messaging System Configuration: Account');
+
+      if (((MainForm.AppConfiguration.GetValue('Messaging Services') as TJSONObject).GetValue('Twilio') as TJSONObject).GetValue('Fallback URL') <> nil) 
+      then FallbackURL := (((MainForm.AppConfiguration.GetValue('Messaging Services') as TJSONObject).GetValue('Twilio') as TJSONObject).GetValue('Fallback URL') as TJSONString).Value
+      else raise EXDataHttpUnauthorized.Create('Invalid Messaging System Configuration: Fallback URL');
+    end;
+  end;
+  if (ServiceName = '') or (AccountNumber = '') or (AuthToken = '') or (FallbackURL = '') 
+  then raise EXDataHttpUnauthorized.Create('Invalid Messaging System Configuration');
+
+  Request := TStringList.Create;
+  Request.LoadFromStream(Incoming);
+
+  Processed := TStringList.Create;
+  Processed.Delimiter := '&';
+  Processed.DelimitedText := Request.Text;
+  Processed.Sort;
+
+//  MainForm.LogEvent('Parameters');
+//  MainForm.LogEvent(Processed.Text);
+
+  i := 0;
+  SignaturePAR := '';
+  while i < Processed.Count do
+  begin
+    SignaturePAR := SignaturePAR + TNetEncoding.URL.Decode(StringReplace(Processed[i],'=','',[]));
+    i := i + 1;
+  end;
+
+//  MainForm.LogEvent('Signature Parameters');
+//  MainForm.LogEvent(SignaturePAR);
+
+  Signature := TXdataOperationContext.Current.Request.Headers.Get('x-twilio-signature');
+  SignatureURL := FallbackURL;
+  SignatureTOK := AuthToken;
+  SignatureGEN := GenerateSignature(SignatureURL, SignaturePAR, SignatureTOK);
+
+//  MainForm.LogEvent('Signature');
+//  MainForm.LogEvent(Signature);
+//  MainForm.LogEvent('Signature Generated');
+//  MainForm.LogEvent(SignatureGEN);
+
+  // Not authenticated
+  if (SignatureGEN <> Signature) then
+  begin
+//    MainForm.LogEvent('Signature NOT Matched');
+    Request.Free;
+    Processed.Free;
+    raise EXDataHttpUnauthorized.Create('Invalid Signature Detected');
+  end;
+//  MainForm.LogEvent('Signature Matched');
+
+  // Setup DB connection and query
+  // NOTE: Image access is anonymous, but database access is usually not,
+  // so we should be careful how and when this is called
+  try
+    DatabaseName := MainForm.DatabaseName;
+    DatabaseEngine := MainForm.DatabaseEngine;
+    DBSupport.ConnectQuery(DBConn, Query1, DatabaseName, DatabaseEngine);
+  except on E: Exception do
+    begin
+      MainForm.mmInfo.Lines.Add('['+E.Classname+'] '+E.Message);
+      raise EXDataHttpUnauthorized.Create('Internal Error: M-C-CQ');
+    end;
+  end;
+
+  // Use this query to log messages. Set parameters to null string to start
+  {$Include sql\messaging\messaging\log_message.inc}
+  Query1.ParamByName('service').AsString := ServiceName+' / Fallback';
+  for i := 1 to Query1.ParamCount - 1 do
+    Query1.Params[i].AsString := '';
+
+  i := 0;
+  while i < Processed.Count do
+  begin
+    FieldName := '';
+    FieldValue := '';
+    if Pos('=', Processed[i]) > 0 then
+    begin
+      FieldName := Copy(Processed[i], 1, Pos('=', Processed[i]) - 1);
+      FieldValue := TNetEncoding.URL.Decode(Copy(Processed[i], Pos('=', Processed[i]) + 1, Length(Processed[i])));
+    end;
+
+    // Filter out any junk, like when uploading a file via Swagger
+    if FieldName <> '' then
+    begin
+      // Parse JSON of AddOns
+      if FieldName = 'AddOns' then
+      begin
+//        MainForm.LogEvent('- '+FieldName+'='+FieldValue);
+        AddOns := TJSONObject.ParseJSONValue(FieldValue) as TJSONObject;
+        Query1.ParamByName('AddOns').AsString := Addons.toString;
+      end
+
+      // To= is assigned to ToNum field
+      else if FieldName = 'To' then
+      begin
+//        MainForm.LogEvent('- '+FieldName+'='+FieldValue);
+        Query1.ParamByName('ToNum').AsString := FieldValue;
+      end
+
+      // From= is assigned to FromNum field
+      else if FieldName = 'From' then
+      begin
+//        MainForm.LogEvent('- '+FieldName+'='+FieldValue);
+        Query1.ParamByName('FromNum').AsString := FieldValue;
+      end
+
+      // Process Other Fields
+      else
+      begin
+//        MainForm.LogEvent('- '+FieldName+'='+FieldValue);
+        if Query1.Params.FindParam(FieldName) <> nil then
+        begin
+          Query1.ParamByName(FieldName).AsString := FieldValue;
+        end
+        else
+        begin
+          MainForm.LogEvent('WARNING: Message Received with Unexpected Field: ');
+          MainForm.LogEvent('[ '+Processed[i]+ ' ]');
+        end;
+      end;
+
+    end;
+    i := i + 1;
+  end;
+
+  // Log the fallback request
+  try
+    Query1.ExecSQL;
+  except on E: Exception do
+    begin
+      MainForm.LogException('MessagingService.Fallback: Log Query', E.ClassName, E.Message, Query1.SQL.Text);
+    end;
+  end;
+
+  // Returning XML, so flag it as such
+  TXDataOperationContext.Current.Response.Headers.SetValue('content-type', 'text/xml');
+
+  // Return an empty, but valid, response
+  Result := TMemoryStream.Create;
+  Response := TStringList.Create;
+  Response.Add('<Response></Response>');
+  Response.SaveToStream(Result);
+
+  //Cleanup
+  Request.Free;
+  Processed.Free;
+  Response.Free;
+
+  // Keep track of endpoint history
+  try
+    {$Include sql\system\endpoint_history_insert\endpoint_history_insert.inc}
+    Query1.ParamByName('PERSONID').AsInteger := 1;
+    Query1.ParamByName('ENDPOINT').AsString := 'MessagingService.Fallback';
+    Query1.ParamByName('ACCESSED').AsDateTime := TTimeZone.local.ToUniversalTime(ElapsedTime);
+    Query1.ParamByName('IPADDRESS').AsString := TXDataOperationContext.Current.Request.RemoteIP;
+    Query1.ParamByName('APPLICATION').AsString := MainForm.AppName;
+    Query1.ParamByName('VERSION').AsString := MainForm.AppVersion;
+    Query1.ParamByName('DATABASENAME').AsString := DatabaseName;
+    Query1.ParamByName('DATABASEENGINE').AsString := DatabaseEngine;
+    Query1.ParamByName('EXECUTIONMS').AsInteger := MillisecondsBetween(Now,ElapsedTime);
+    Query1.ParamByName('DETAILS').AsString := '['+ServiceName+']';
+    Query1.ExecSQL;
+  except on E: Exception do
+    begin
+      MainForm.mmInfo.Lines.Add('['+E.Classname+'] '+E.Message);
+      raise EXDataHttpUnauthorized.Create('Internal Error: M-C-EHI');
+    end;
+  end;
+
+  // All Done
+  try
+    DBSupport.DisconnectQuery(DBConn, Query1);
+  except on E: Exception do
+    begin
+      MainForm.mmInfo.Lines.Add('['+E.Classname+'] '+E.Message);
+      raise EXDataHttpUnauthorized.Create('Internal Error: M-C-DQ');
+    end;
+  end;
+
+
 end;
 
 function TMessagingService.SendAMessage(MessageService: String; Destination: String; AMessage: String):TStream;

@@ -59,22 +59,6 @@ type
     ///  </param>
     [HttpPost] function SendAMessage(MessageService: String; Destination: String; AMessage: String):TStream;
 
-    ///  <summary>
-    ///    Get incoming SMS messages
-    ///  </summary>
-    ///  <remarks>
-    ///    This is used to receive SMS messages from a central source.
-    ///  </remarks>
-    ///  <param name="Destination">
-    ///    The SMS number receiving from (same as the SendAMessage destionation). The idea here
-    ///    is to have the inbound and outbound tagged with the same value so we can see a conversation.
-    ///  </param>
-    ///  <param name="Since">
-    ///    Used to limit the messages to those received after a point in time, so as to reduce
-    ///    the size of this request. yyyy-mm-dd hh:nn:ss format.
-    ///  </param>
-    [HttpPost] [Authorize] function GetMessages(Destination: String; Since: String):TStream;
-
   end;
 
 implementation
