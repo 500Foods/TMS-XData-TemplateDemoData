@@ -13,11 +13,11 @@ begin
     SQL.Add('select count(*) records from '+TableName+';');
     try
       Open;
-      mmInfo.Lines.Add('...'+TableName+' ('+IntToStr(FieldByName('records').AsInteger)+' records)');
+      LogEvent('...'+TableName+' ('+IntToStr(FieldByName('records').AsInteger)+' records)');
 
     except on E:Exception do
       begin
-        mmInfo.Lines.Add('...'+TableName+' (CREATE)');
+        LogEvent('...'+TableName+' (CREATE)');
         SQL.Clear;
         SQL.Add('create table if not exists '+TableName+' ( '+
                 '  api_key                    text        NOT NULL, '+
@@ -41,7 +41,7 @@ begin
     // Populate empty table with sample data
     if (FieldByName('records').AsInteger = 0) then
     begin
-      mmInfo.Lines.Add('...'+TableName+' (POPULATE)');
+      LogEvent('...'+TableName+' (POPULATE)');
       SQL.Clear;
 
       // Default API Keys for testing - set to expire after three months

@@ -3,16 +3,83 @@ unit Unit2;
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,System.Types,
-  System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs,
-  Vcl.StdCtrls, Unit1, System.IOUtils, System.DateUtils, IdStack, IdGlobal, psAPI, WinAPi.ShellAPI,
-  FireDAC.Stan.Intf, FireDAC.Stan.Option, FireDAC.Stan.Error,
-  FireDAC.UI.Intf, FireDAC.Phys.Intf, FireDAC.Stan.Def, FireDAC.Stan.Pool,
-  FireDAC.Stan.Async, FireDAC.Phys, FireDAC.VCLUI.Wait,
-  FireDAC.Stan.ExprFuncs, FireDAC.Phys.SQLiteDef, FireDAC.Stan.Param,
-  FireDAC.DatS, FireDAC.DApt.Intf, FireDAC.DApt, Data.DB,
-  FireDAC.Comp.DataSet, FireDAC.Comp.Client, FireDAC.Phys.SQLite,
-  Vcl.ExtCtrls, System.JSON, System.StrUtils,IdGlobalProtocols, System.Generics.Collections;
+  Winapi.Windows,
+  Winapi.Messages,
+  Winapi.shellapi,
+
+  PsAPI,
+  TlHelp32,
+
+  System.Types,
+  System.SysUtils,
+  System.Variants,
+  System.Math,
+  System.Classes,
+  System.JSON,
+  System.Generics.Collections,
+  System.NetEncoding,
+  System.DateUtils,
+  System.StrUtils,
+  System.IOUTils,
+
+  Vcl.Graphics,
+  Vcl.Controls,
+  Vcl.Forms,
+  Vcl.Dialogs,
+  Vcl.StdCtrls,
+  Vcl.ExtCtrls,
+
+  Data.DB,
+
+  FireDAC.Stan.Intf,
+  FireDAC.Stan.Option,
+  FireDAC.Stan.Error,
+  FireDAC.UI.Intf,
+  FireDAC.Phys.Intf,
+  FireDAC.Stan.Def,
+  FireDAC.Phys,
+  FireDAC.Stan.Pool,
+  FireDAC.Stan.Async,
+  FireDAC.VCLUI.Wait,
+  FireDAC.Comp.Client,
+  FireDAC.Stan.ExprFuncs,
+  FireDAC.Phys.SQLiteDef,
+  FireDAC.Stan.Param,
+  FireDAC.DatS,
+  FireDAC.DApt.Intf,
+  FireDAC.DApt,
+  FireDAC.Comp.DataSet,
+  FireDAC.Phys.SQLite,
+
+  idURI,
+  IdGlobalProtocols,
+  IdStack,
+  IdGlobal,
+  IdBaseComponent,
+  IdComponent,
+  IdTCPConnection,
+  IdTCPClient,
+  IdHTTP,
+  IdMessageClient,
+  IdMessage,
+  IdMessageBuilder,
+  IdAttachment,
+  IdMessageParts,
+  IdEMailAddress,
+  IdAttachmentFile,
+  IdSMTPBase,
+  IdSMTP,
+  IdAttachmentMemory,
+
+  System.Net.URLClient,
+  System.Net.HttpClientComponent,
+  System.Net.HttpClient,
+
+  Vcl.WinXPickers,
+  Vcl.ComCtrls,
+  Vcl.Imaging.pngimage,
+
+  Unit1;
 
 type
   TMainForm = class(TForm)
@@ -26,6 +93,7 @@ type
     tmrStart: TTimer;
     tmrInit: TTimer;
     btRedoc: TButton;
+    btEMail: TButton;
     procedure btStartClick(ASender: TObject);
     procedure btStopClick(ASender: TObject);
     procedure FormCreate(ASender: TObject);
@@ -45,6 +113,10 @@ type
     procedure FormShow(Sender: TObject);
     procedure tmrInitTimer(Sender: TObject);
     procedure btRedocClick(Sender: TObject);
+    procedure LogEvent(Details: String);
+    procedure LogException(Source, EClass, EMessage, Data: String);
+    procedure SendActivityLog(Subject: String);
+    procedure btEMailClick(Sender: TObject);
   public
     AppName: String;
     AppVersion: String;
@@ -65,12 +137,23 @@ type
     AppIcons: TJSONArray;
     AppIconSets: String;
 
+    AppStartup: TDateTime;
+    LastException: TDateTime;
+
     DatabaseName: String;
     DatabaseAlias: String;
     DatabaseEngine: String;
     DatabaseUsername: String;
     DatabasePassword: String;
     DatabaseConfig: String;
+
+    MailServerAvailable: Boolean;
+    MailServerHost: String;
+    MailServerPort: Integer;
+    MailServerUser: String;
+    MailServerPass: String;
+    MailServerFrom: String;
+    MailServerName: String;
 
   strict private
     procedure UpdateGUI;
@@ -84,6 +167,11 @@ implementation
 {$R *.dfm}
 
 { TMainForm }
+
+procedure TMainForm.btEMailClick(Sender: TObject);
+begin
+  SendActivityLog('Activity Log');
+end;
 
 procedure TMainForm.btRedocClick(Sender: TObject);
 var
@@ -125,6 +213,8 @@ end;
 
 procedure TMainForm.FormCreate(ASender: TObject);
 begin
+  AppStartup := Now;
+  LastException := Now -1;
   tmrInit.Enabled := True;
 end;
 
@@ -267,9 +357,116 @@ begin
   MemCounters.cb := SizeOf(MemCounters);
   if GetProcessMemoryInfo(GetCurrentProcess, @MemCounters, SizeOf(MemCounters))
   then Result := MemCounters.WorkingSetSize
-  else mmInfo.Lines.add('ERROR: WorkingSetSize not available');
+  else LogEvent('ERROR: WorkingSetSize not available');
 end;
 
+
+procedure TMainForm.LogEvent(Details: String);
+begin
+  try
+    mmInfo.Lines.Add(FormatDateTime('yyyy-mm-dd HH:nn:ss.zzz', Now)+'  '+Details);
+    SendMessage(mmInfo.Handle, EM_LINESCROLL, 0, mmInfo.Lines.Count);
+  except on E: Exception do
+    begin
+    end;
+  end;
+end;
+
+procedure TMainForm.LogException(Source, EClass, EMessage, Data: String);
+begin
+  LogEvent('');
+  LogEvent('[ EXCEPTION ] '+Source);
+  LogEvent('[ '+EClass+' ] '+EMessage);
+  LogEvent('[ Data ] '+Data);
+
+  if (MinutesBetween(now, LastException) > 15)  then
+  begin
+    LastException := Now;
+    SendActivityLog('Exception Detected');
+  end;
+end;
+procedure TMainForm.SendActivityLog(Subject: String);
+var
+  SMTP1: TIdSMTP;
+  Msg1: TIdMessage;
+  Addr1: TIdEmailAddressItem;
+  Html1: TIdMessageBuilderHtml;
+  SMTPResult: WideString;
+begin
+  if not(MailServerAvailable) then
+  begin
+    LogEvent('WARNING: '+Subject+' e-mail not sent (Mail services not configured)');
+  end
+  else
+  begin
+
+    // Send warning email
+    Msg1  := nil;
+    Addr1 := nil;
+    SMTP1 := TIdSMTP.Create(nil);
+    SMTP1.Host     := MainForm.MailServerHost;
+    SMTP1.Port     := MainForm.MailServerPort;
+    SMTP1.Username := MainForm.MailServerUser;
+    SMTP1.Password := MainForm.MailServerPass;
+
+    try
+      Html1 := TIdMessageBuilderHtml.Create;
+      try
+        Html1.Html.Add('<html>');
+        Html1.Html.Add('<head>');
+        Html1.Html.Add('</head>');
+        Html1.Html.Add('<body><pre>');
+        Html1.Html.Add(mmInfo.Lines.Text);
+        Html1.Html.Add('</pre></body>');
+        Html1.Html.Add('</html>');
+        Html1.HtmlCharSet := 'utf-8';
+
+        Msg1 := Html1.NewMessage(nil);
+
+        // Startup should be < 10s but otherwise send the running time
+        if MillisecondsBetween(Now, AppStartup) < 10000
+        then Msg1.Subject := '['+GetEnvironmentVariable('COMPUTERNAME')+'] '+Subject+': '+MainForm.Caption+' ('+IntToStr(MillisecondsBetween(Now, AppStartup))+'ms)'
+        else Msg1.Subject := '['+GetEnvironmentVariable('COMPUTERNAME')+'] '+Subject+': '+MainForm.Caption+' ('+FormatDateTime('hh:nn:ss', Now - AppStartup)+'}';
+
+        Msg1.From.Text := MainForm.MailServerFrom;
+        Msg1.From.Name := MainForm.MailServerName;
+
+        Addr1 := Msg1.Recipients.Add;
+        Addr1.Address := MainForm.MailserverFrom;
+
+        SMTP1.Connect;
+        try
+          try
+            SMTP1.Send(Msg1);
+          except on E: Exception do
+            begin
+              SMTPResult := SMTPResult+'[ '+E.ClassName+' ] '+E.Message+Chr(10);
+            end;
+          end;
+        finally
+          SMTP1.Disconnect();
+        end;
+      finally
+        Addr1.Free;
+        Msg1.Free;
+        Html1.Free;
+      end;
+    except on E: Exception do
+      begin
+        SMTPResult := SMTPResult+'[ '+E.ClassName+' ] '+E.Message+Chr(10);
+      end;
+    end;
+    SMTP1.Free;
+
+    if SMTPResult = ''
+    then LogEvent('NOTICE: '+Subject+' e-mail sent to '+MailServerName+' <'+MailServerFrom+'>')
+    else
+    begin
+      LogEvent('WARNING: '+Subject+' e-mail to '+MailServerName+' <'+MailServerFrom+'> FAILED.');
+      LogEvent('WARNING: SMTP Error: '+SMTPResult);
+    end;
+  end;
+end;
 
 procedure TMainForm.tmrInitTimer(Sender: TObject);
 var
@@ -305,7 +502,7 @@ begin
   GetIPAddresses(IPAddresses);
 
   // Load JSON Configuration
-  mmINfo.Lines.Add('Loading Configuration ...');
+  LogEvent('Loading Configuration.');
   AppConfigFile := StringReplace(ExtractFileName(ParamStr(0)),'exe','json',[]);
   i := 0;
   while i < AppParameters.Count do
@@ -319,18 +516,18 @@ begin
   begin
     try
       ConfigFile.LoadFromFile(AppConfigFile);
-      mmInfo.Lines.Add('...Configuration File Loaded: '+AppConfigFile);
+      LogEvent('- Configuration File Loaded: '+AppConfigFile);
       AppConfiguration := TJSONObject.ParseJSONValue(ConfigFile.Text) as TJSONObject;
     except on E: Exception do
       begin
-        mmInfo.Lines.Add('...Configuration File Error: '+AppConfigFile);
-        mmInfo.Lines.Add('...['+E.ClassName+'] '+E.Message);
+        LogEvent('- Configuration File Error: '+AppConfigFile);
+        LogEvent('- ['+E.ClassName+'] '+E.Message);
       end;
     end;
   end
   else // File doesn't exist
   begin
-    mmInfo.Lines.Add('...Configuration File Not Found: '+AppConfigFile);
+    LogEvent('- Configuration File Not Found: '+AppConfigFile);
   end;
   ConfigFile.Free;
   Application.ProcessMessages;
@@ -338,20 +535,42 @@ begin
   if Appconfiguration = nil then
   begin
     // Create an empty AppConfiguration
-    mmInfo.Lines.Add('...Using Default Configuration');
+    LogEvent('- Using Default Configuration');
     AppConfiguration := TJSONObject.Create;
     AppConfiguration.AddPair('BaseURL','http://+:12345/tms/xdata');
     AppConfiguration.AddPair('ServerName','TMS XData Template: Demo Data');
   end;
-  mmInfo.Lines.Add('Done.');
-  mmInfo.Lines.Add('');
+
+  // Get Mail Configuration
+  MailServerAvailable := False;
+  if AppConfiguration.GetValue('Mail Services') <> nil then
+  begin
+    btEMail.Enabled := True;
+    MailServerAvailable := True;
+    MailServerHost := ((AppConfiguration.GetValue('Mail Services') as TJSONObject).GetValue('SMTP Host') as TJSONString).Value;
+    MailServerPort := ((AppConfiguration.GetValue('Mail Services') as TJSONObject).GetValue('SMTP Port') as TJSONNumber).AsInt;
+    MailServerUser := ((AppConfiguration.GetValue('Mail Services') as TJSONObject).GetValue('SMTP User') as TJSONString).Value;
+    MailServerPass := ((AppConfiguration.GetValue('Mail Services') as TJSONObject).GetValue('SMTP Pass') as TJSONString).Value;
+    MailServerFrom := ((AppConfiguration.GetValue('Mail Services') as TJSONObject).GetValue('SMTP From') as TJSONString).Value;
+    MailServerName := ((AppConfiguration.GetValue('Mail Services') as TJSONObject).GetValue('SMTP Name') as TJSONString).Value;
+    LogEvent('- SMTP Mail Server: '+MailServerHost+' / '+IntToStr(MailServerPort));
+  end
+  else
+  begin
+    LogEvent('- SMTP Mail Server: Unavailable');
+  end;
+
+  LogEvent('Done.');
+  LogEvent('');
   Application.ProcessMessages;
 
   if AppConfiguration.getValue('BaseURL') <> nil
   then ServerContainer.XDataServer.BaseURL := (AppConfiguration.getValue('BaseURL') as TJSONString).Value;
 
   if AppConfiguration.getValue('ServerName') <> nil
-  then Caption := (AppConfiguration.getValue('ServerName') as TJSONString).Value;
+  then AppName := (AppConfiguration.getValue('ServerName') as TJSONString).Value;
+
+  Caption := AppName+'     Ver '+AppVersion+'     Rel '+FormatDateTime('yyyy-mmm-dd', AppRelease);
 
   tmrStart.Enabled := True;
 
@@ -392,7 +611,7 @@ begin
   // DatabaseUsername is a Form Variable
   // DatabasePassword is a Form Variable
 
-  mmInfo.Lines.Add('Initializing Database...');
+  LogEvent('Initializing Database.');
 
   DatabaseEngine := 'sqlite';
   DatabaseName := 'DemoData.sqlite';
@@ -454,7 +673,7 @@ begin
 
   DBConn.Open;
   Query1.Connection := DBConn;
-  mmInfo.Lines.Add('...['+DatabaseEngine+'] '+DatabaseName);
+  LogEvent('- ['+DatabaseEngine+'] '+DatabaseName);
 
   Application.ProcessMessages;
 
@@ -491,9 +710,11 @@ begin
   Application.ProcessMessages;
   {$Include ddl\imageai_history\imageai_history.inc}
   Application.ProcessMessages;
+  {$Include ddl\messaging\messaging.inc}
+  Application.ProcessMessages;
 
-  mmInfo.Lines.Add('Done.');
-  mmInfo.Lines.Add('');
+  LogEvent('Done.');
+  LogEvent('');
 
   // Cache Folder
   if (AppConfiguration.GetValue('Cache Folder') <> nil)
@@ -503,13 +724,13 @@ begin
   then AppCacheFolder := AppCacheFolder + '/';
 
   if not(ForceDirectories(AppCacheFolder))
-  then mmInfo.Lines.Add('ERROR Initializing Cache Folder: '+AppCacheFolder);
+  then LogEvent('ERROR Initializing Cache Folder: '+AppCacheFolder);
   if not(ForceDirectories(AppCacheFolder+'images'))
-  then mmInfo.Lines.Add('ERROR Initializing Cache Folder: '+AppCacheFolder+'images');
+  then LogEvent('ERROR Initializing Cache Folder: '+AppCacheFolder+'images');
   if not(ForceDirectories(AppCacheFolder+'images/ai'))
-  then mmInfo.Lines.Add('ERROR Initializing Cache Folder: '+AppCacheFolder+'images/ai');
+  then LogEvent('ERROR Initializing Cache Folder: '+AppCacheFolder+'images/ai');
   if not(ForceDirectories(AppCacheFolder+'images/people'))
-  then mmInfo.Lines.Add('ERROR Initializing Cache Folder: '+AppCacheFolder+'images/people');
+  then LogEvent('ERROR Initializing Cache Folder: '+AppCacheFolder+'images/people');
 
   CacheFolderDirs  := FloatToStrF(Length(TDirectory.GetDirectories(AppCacheFolder,'*',TsearchOption.soAllDirectories)),ffNumber,8,0);
   CacheFolderList := TDirectory.GetFiles(AppCacheFolder,'*.*',TsearchOption.soAllDirectories);
@@ -519,47 +740,68 @@ begin
     CacheFolderSize := CacheFolderSize + (FileSizeByName(CacheFolderList[i]) / 1024 / 1024);
 
   // Display System Values
-  mmInfo.Lines.Add('App Name: '+AppName);
-  mmInfo.Lines.Add('...Version: '+AppVersion);
-  mmInfo.Lines.Add('...Release: '+FormatDateTime('yyyy-mmm-dd (ddd) hh:nn:ss', AppRelease));
-  mmInfo.Lines.Add('...Release UTC: '+FormatDateTime('yyyy-mm-dd hh:nn:ss.zzz', AppReleaseUTC));
-  mmInfo.Lines.Add('...Server Time: '+FormatDateTime('yyyy-mmm-dd (ddd) hh:nn:ss', Now));
-  mmInfo.Lines.Add('...TimeZone: '+AppTimeZone);
-  mmInfo.Lines.Add('...TimeZone Offset: '+IntToStr(AppTimeZoneOffset)+'m');
-  mmInfo.Lines.Add('...Base URL: '+ServerContainer.XDataServer.BaseURL);
-  mmInfo.Lines.Add('...File Name: '+AppFileName);
-  mmInfo.Lines.Add('...File Size: '+Format('%.1n',[AppFileSize / 1024 / 1024])+' MB');
-  mmInfo.Lines.Add('...Cache Folder: '+AppCacheFolder);
-  mmInfo.Lines.Add('...Cache Statistics: '+CacheFolderDirs+' Folders, '+CacheFolderFiles+' Files, '+FloatToStrF(CacheFolderSize,ffNumber,8,1)+' MB');
-  mmInfo.Lines.Add('...Memory Usage: '+Format('%.1n',[GetMemoryUsage / 1024 / 1024])+' MB');
+  LogEvent('App Name: '+AppName);
+  LogEvent('- Version: '+AppVersion);
+  LogEvent('- Release: '+FormatDateTime('yyyy-mmm-dd (ddd) hh:nn:ss', AppRelease));
+  LogEvent('- Release UTC: '+FormatDateTime('yyyy-mm-dd hh:nn:ss.zzz', AppReleaseUTC));
+  LogEvent('- Server Time: '+FormatDateTime('yyyy-mmm-dd (ddd) hh:nn:ss', Now));
+  LogEvent('- TimeZone: '+AppTimeZone);
+  LogEvent('- TimeZone Offset: '+IntToStr(AppTimeZoneOffset)+'m');
+  LogEvent('- Base URL: '+ServerContainer.XDataServer.BaseURL);
+  LogEvent('- File Name: '+AppFileName);
+  LogEvent('- File Size: '+Format('%.1n',[AppFileSize / 1024 / 1024])+' MB');
+  LogEvent('- Cache Folder: '+AppCacheFolder);
+  LogEvent('- Cache Statistics: '+CacheFolderDirs+' Folders, '+CacheFolderFiles+' Files, '+FloatToStrF(CacheFolderSize,ffNumber,8,1)+' MB');
+  LogEvent('- Memory Usage: '+Format('%.1n',[GetMemoryUsage / 1024 / 1024])+' MB');
 
-  mmInfo.Lines.Add('...Parameters:');
+  LogEvent('- Parameters:');
   i := 0;
   while i < AppParameters.Count do
   begin
-    mmInfo.Lines.Add('        '+StringReplace(AppParameters[i],'"','',[rfReplaceAll]));
+    LogEvent('        '+StringReplace(AppParameters[i],'"','',[rfReplaceAll]));
     i := i + 1;
   end;
 
-  mmInfo.Lines.Add('...IP Addresses:');
+  LogEvent('- IP Addresses:');
   i := 0;
   while i < IPAddresses.Count do
   begin
-    mmInfo.Lines.Add('        '+StringReplace(IPAddresses[i],'"','',[rfReplaceAll]));
+    LogEvent('        '+StringReplace(IPAddresses[i],'"','',[rfReplaceAll]));
     i := i + 1;
   end;
 
-
-  // Are chat services avialable?
-  if (AppConfiguration.GetValue('Chat Interface') as TJSONArray) = nil
-  then mmInfo.Lines.Add('...Chat: UNAVAILABLE')
+  // Are Messaging Services avialable?
+  if (AppConfiguration.GetValue('Messaging Services') = nil) or ((AppConfiguration.GetValue('Messaging Services') as TJSONObject) = nil)
+  then LogEvent('- Messaging Services: UNAVAILABLE')
   else
   begin
-    mmInfo.Lines.Add('...Chat:');
+    LogEvent('- Messaging Services:');
+    i := 0;
+    if ((AppConfiguration.GetValue('Messaging Services') as TJSONObject).GetValue('Twilio') <> nil) and
+       (((AppConfiguration.GetValue('Messaging Services') as TJSONObject).GetValue('Twilio') as TJSONObject).GetValue('Service Name') <> nil) then
+    begin
+      i := i + 1;
+      LogEvent('        '+(((AppConfiguration.GetValue('Messaging Services') as TJSONObject).GetValue('Twilio') as TJSONObject).getValue('Service Name') as TJSONString).Value);
+    end;
+    if ((AppConfiguration.GetValue('Messaging Services') as TJSONObject).GetValue('RingCentral') <> nil) and
+       (((AppConfiguration.GetValue('Messaging Services') as TJSONObject).GetValue('RingCentral') as TJSONObject).GetValue('Service Name') <> nil) then
+    begin
+      i := i + 1;
+      LogEvent('        '+(((AppConfiguration.GetValue('Messaging Services') as TJSONObject).GetValue('RingCentral') as TJSONObject).getValue('Service Name') as TJSONString).Value);
+    end;
+    LogEvent('        Messaging Services Configured: '+IntToStr(i));
+  end;
+
+  // Are chat services avialable?
+  if (AppConfiguration.GetValue('Chat Interface') = nil) or ((AppConfiguration.GetValue('Chat Interface') as TJSONArray) = nil)
+  then LogEvent('- Chat: UNAVAILABLE')
+  else
+  begin
+    LogEvent('- Chat:');
     i := 0;
     while i < (AppConfiguration.GetValue('Chat Interface') as TJSONArray).Count do
     begin;
-      mmInfo.Lines.Add('        '+(((AppConfiguration.GetValue('Chat Interface') as TJSONArray).items[i] as TJSONObject).getValue('Name') as TJSONString).Value);
+      LogEvent('        '+(((AppConfiguration.GetValue('Chat Interface') as TJSONArray).items[i] as TJSONObject).getValue('Name') as TJSONString).Value);
       i := i + 1;
     end;
   end;
@@ -580,11 +822,11 @@ begin
 
   if length(IconFiles) = 0 then
   begin
-    mmInfo.Lines.Add('...No Icon Sets Loaded: None Found.');
+    LogEvent('- No Icon Sets Loaded: None Found.');
   end
   else
   begin
-    mmInfo.Lines.Add('...Loading '+IntToStr(Length(IconFiles))+' Icon Sets:');
+    LogEvent('- Loading '+IntToStr(Length(IconFiles))+' Icon Sets:');
     IconFile := TStringList.Create;
 
     for i := 0 to Length(IconFiles)-1 do
@@ -599,7 +841,7 @@ begin
       IconTotal := IconTotal + IconCount;
 
       // Log what we're doing
-      mmInfo.Lines.Add('        ['+TPath.GetFileName(IconFiles[i])+'] '+
+      LogEvent('        ['+TPath.GetFileName(IconFiles[i])+'] '+
         ((IconJSON.GetValue('info') as TJSONObject).GetValue('name') as TJSONString).Value+' - '+
         IntToStr(IconCount)+' Icons');
 
@@ -635,20 +877,22 @@ begin
     end;
     IconFile.Free;
   end;
-  mmInfo.Lines.Add('        Icons Loaded: '+FloatToStrF(IconTotal,ffNumber,10,0));
+  LogEvent('        Icons Loaded: '+FloatToStrF(IconTotal,ffNumber,10,0));
 
   // We don't need to do anything else with this, so we'll store it as a string and
   // then return just that when asked for this ata.
   AppIconSets := IconSets.ToString;
 
 
-  mmInfo.Lines.Add('...Memory Usage: '+Format('%.1n',[GetMemoryUsage / 1024 / 1024])+' MB');
-  mmInfo.Lines.Add('Done.');
-  mmInfo.Lines.Add('');
+  LogEvent('- Memory Usage: '+Format('%.1n',[GetMemoryUsage / 1024 / 1024])+' MB');
+  LogEvent('Done.');
+  LogEvent('');
 
   // Start Server
   ServerContainer.SparkleHttpSysDispatcher.Active := True;
   UpdateGUI;
+
+  SendActivityLog('Startup Confirmation');
 
   // Cleanup
   ImageFile.Free;
@@ -663,12 +907,18 @@ begin
   btStop.Enabled := not btStart.Enabled;
   if ServerContainer.SparkleHttpSysDispatcher.Active then
   begin
-    mmInfo.Lines.Add('XData Server started at '+StringReplace( ServerContainer.XDataServer.BaseUrl, cHttp, cHttpLocalhost, [rfIgnoreCase]));
-    mmInfo.Lines.Add('SwaggerUI started at '+StringReplace( ServerContainer.XDataServer.BaseUrl, cHttp, cHttpLocalhost, [rfIgnoreCase])+'/swaggerui');
+    LogEvent('XData Server started at '+StringReplace( ServerContainer.XDataServer.BaseUrl, cHttp, cHttpLocalhost, [rfIgnoreCase]));
+    LogEvent('SwaggerUI started at '+StringReplace( ServerContainer.XDataServer.BaseUrl, cHttp, cHttpLocalhost, [rfIgnoreCase])+'/swaggerui');
+    LogEvent('Redoc started at '+StringReplace( ServerContainer.XDataServer.BaseUrl, cHttp, cHttpLocalhost, [rfIgnoreCase])+'/redoc');
+    LogEvent(' ');
+    btSwagger.Enabled := True;
+    btRedoc.Enabled := True;
   end
   else
   begin
-    mmInfo.Lines.Add('XData Server stopped');
+    LogEvent('XData Server stopped');
+    btSwagger.Enabled := False;
+    btRedoc.Enabled := False;
   end;
 end;
 

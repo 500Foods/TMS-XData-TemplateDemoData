@@ -1,4 +1,4 @@
-program Project1;
+program XDataServer;
 
 uses
   Vcl.Forms,
@@ -13,7 +13,9 @@ uses
   DashboardService in 'units\DashboardService.pas',
   DashboardServiceImplementation in 'units\DashboardServiceImplementation.pas',
   ChatService in 'units\ChatService.pas',
-  ChatServiceImplementation in 'units\ChatServiceImplementation.pas';
+  ChatServiceImplementation in 'units\ChatServiceImplementation.pas',
+  MessagingService in 'units\MessagingService.pas',
+  MessagingServiceImplementation in 'units\MessagingServiceImplementation.pas';
 
 {$R *.res}
 
