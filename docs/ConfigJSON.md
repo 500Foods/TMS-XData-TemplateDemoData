@@ -13,8 +13,11 @@ Used to set the caption at the top of the XData window.  Defaults to "TMS XData 
 ### Cache Folder
 Endpoints that return images, specifically the ChatService/GetChatImage endpoint, will generate a cache of any images requested from the database.  This may include both thumbnails as well as the original image stored in the database.  By default, a cache folder will be created in the same folder as the XData application when it first starts.  This behaviour can be overriden by setting a "Cache Folder" entry in the configuration. Eg: c:/data/cache.  Note carefully that the folders are specified using a forward slash.
 
-### Chat Interface
-For the chat features of this project to work properly, appropriate API keys need to be provided in most cases (eg: OpenAI's ChatGPT offernings). The configuration JSON file is used to provide these keys, along with several other chat-related parameters, to the XData application. As there may very well be several chat interfaces provided, a JSON array is used in this case. An example is provided below. Please refer to the [ChatService documentation](https://github.com/500Foods/TMS-XData-TemplateDemoData/blob/main/docs/ChatService.md) for more detailed information.
+### Chat Interface (ChatGPT)
+For the chat features of this project to work properly, appropriate API keys need to be provided in most cases (eg: OpenAI's ChatGPT offerings). The configuration JSON file is used to provide these keys, along with several other chat-related parameters, to the XData application. As there may very well be several chat interfaces provided, a JSON array is used in this case. An example is provided below. Please refer to the [ChatService documentation](https://github.com/500Foods/TMS-XData-TemplateDemoData/blob/main/docs/ChatService.md) for more detailed information.
+
+### Messaging Interface
+For the messaging features (SMS) of this project to work properly, appropriate API keys need to be provided in most cases (eg: Twilio). The configuration JSON file is used to provide these keys, along with several other messaging-related parameters, to the XData application. As there may very well be several messaging services provided for a given messaging provider, a JSON array is used in this case. An example is provided below. Please refer to the [MessagingService documentation](https://github.com/500Foods/TMS-XData-TemplateDemoData/blob/main/docs/MessagingService.md) for more detailed information.
 
 ### Mail Services
 In order for notification e-mails to be sent, an SMTP mail server needs to be specified along with an account used to log in to that server for submitting e-mails. In addition, a separate e-mail address/name is used for addressing the e-mails.
@@ -100,6 +103,19 @@ Here is an example JSON configuration file.
     "SMTP Pass":"kJkh3oaDfwk7A8A",
     "SMTP From":"concierge@example.com",
     "SMTP Name":"Example Concierge"
-  }
+  },
+  "Messaging Services":{ 
+    "Twilio": { 
+      "Service Name":"Twilio Messaging", 
+      "Account": "AC5346342f844fc5b7dd41412ed8eXXXXX", 
+      "Auth Token": "df21f3f76799992f8b52164021bXXXXX", 
+      "Send URL":"https://api.twilio.com/2010-04-01/Accounts/AC5346342f844fc5b7dd41412ed8eXXXXX/Messages.json", 
+      "Messaging Services":[ 
+        {"500 Dashboards Notify":"MGec8ddf1c3187241921577f73f5XXXXX"},  
+        {"500 Dashboards Support":"MGec8ddf1c3187241921577f73fYYYYY"},  
+        {"500 Dashboards Billing":"MGec8ddf1c3187241921577f73f5ZZZZZ"}  
+      ]  
+    }  
+  }  
 }
 ```
