@@ -23,6 +23,7 @@ Some services are also more complex, interfacing to other systems, as is the cas
 
 * [Chat Service](https://github.com/500Foods/TMS-XData-TemplateDemoData/blob/main/docs/ChatService.md)
 * [Dashboard Service](https://github.com/500Foods/TMS-XData-TemplateDemoData/blob/main/docs/DashboardService.md)
+* [Messaging Service](https://github.com/500Foods/TMS-XData-TemplateDemoData/blob/main/docs/MessagingService.md)
 * [Person Service](https://github.com/500Foods/TMS-XData-TemplateDemoData/blob/main/docs/PersonService.md)
 * [System Service](https://github.com/500Foods/TMS-XData-TemplateDemoData/blob/main/docs/SystemService.md)
 
