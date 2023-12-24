@@ -48,17 +48,17 @@ Initially, this example uses SQLite as its database, as well as a collection of 
 [![Count Lines of Code](https://github.com/500Foods/TMS-XData-TemplateDemoData/actions/workflows/main.yml/badge.svg)](https://github.com/500Foods/TMS-XData-TemplateDemoData/actions/workflows/main.yml)
 <!--CLOC-START -->
 ```
-Last Updated at 2023-11-27 01:59:26 UTC
+Last Updated at 2023-12-24 05:18:19 UTC
 -------------------------------------------------------------------------------
 Language                     files          blank        comment           code
 -------------------------------------------------------------------------------
 Pascal                          15           1524           2766          12948
-Markdown                         8             36              2            216
+Markdown                         8             36              2            218
 Delphi Form                      3              0              0            155
 YAML                             2              8             12             33
 Text                             1              0              0              1
 -------------------------------------------------------------------------------
-SUM:                            29           1568           2780          13353
+SUM:                            29           1568           2780          13355
 -------------------------------------------------------------------------------
 ```
 <!--CLOC-END-->
